@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body{
+            margin:0;
+            overflow:hidden;
+            font-family:"Segoe UI", Tahoma, Arial, sans-serif;
+            font-size:12px;
+            color:#1e395b;
+        }
+
+        #background{
+            position:absolute;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+
+            background-image:url("../bg4.jpg");
+            background-size:cover;
+            background-repeat:no-repeat;
+            background-position:center;
+
+            image-rendering:pixelated;
+        }
+
+        #screen{
+            position:absolute;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        }
+
+        /* ---------- Window frame (Aero glass) ---------- */
+        .window{
+            width:540px;
+            height:330px;
+            display:flex;
+            flex-direction:column;
+            box-sizing:border-box;
+            border-radius:8px 8px 0 0;
+            border:1px solid #4a6a8e;
+            background:linear-gradient(180deg,
+                rgba(200,222,244,.92) 0%,
+                rgba(166,199,232,.88) 50%,
+                rgba(150,186,224,.90) 100%);
+            box-shadow:
+                inset 0 0 0 1px rgba(255,255,255,.65),
+                0 8px 24px rgba(0,0,0,.45);
+            padding:0 7px 7px 7px;
+            position:relative;
+        }
+
+        /* ---------- Title bar ---------- */
+        .titlebar{
+            height:26px;
+            display:flex;
+            justify-content:flex-end;
+            align-items:flex-start;
+            flex-shrink:0;
+        }
+
+        .controls{
+            display:flex;
+            margin-right:-1px;
+            border:1px solid #4a5f7a;
+            border-top:none;
+            border-radius:0 0 5px 5px;
+            overflow:hidden;
+            box-shadow:inset 0 0 0 1px rgba(255,255,255,.5);
+        }
+
+        .controls span{
+            height:17px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            background:linear-gradient(180deg,#e4edf8 0%,#c3d4ea 48%,#a9c0de 52%,#c5d8ee 100%);
+            border-right:1px solid #5d7592;
+            box-sizing:border-box;
+        }
+        .controls .min,
+        .controls .max{ width:26px; }
+        .controls .close{
+            width:42px;
+            border-right:none;
+            background:linear-gradient(180deg,#e9a79b 0%,#d9715f 48%,#c3361f 52%,#dd7a55 100%);
+            color:#fff;
+            font-weight:bold;
+            font-size:11px;
+            text-shadow:0 0 3px #5a1608;
+        }
+
+        .min i{
+            width:8px; height:3px;
+            background:#fff;
+            border:1px solid #3a4f6b;
+            margin-top:5px;
+            box-sizing:border-box;
+        }
+        .max i{
+            width:9px; height:7px;
+            border:1px solid #3a4f6b;
+            border-top-width:2px;
+            background:rgba(255,255,255,.55);
+            box-sizing:border-box;
+        }
+
+        /* ---------- Navigation row ---------- */
+        .navrow{
+            display:flex;
+            align-items:center;
+            gap:6px;
+            height:32px;
+            flex-shrink:0;
+            margin-top:-2px;
+        }
+
+        .navbtns{
+            display:flex;
+        }
+        .navbtns b{
+            width:22px; height:22px;
+            border-radius:50%;
+            border:1px solid #6b819c;
+            background:radial-gradient(circle at 50% 25%,#ffffff 0%,#dbe7f5 45%,#b6cde6 100%);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:12px;
+            color:#9db2cc;
+            margin-right:-3px;
+            box-shadow:inset 0 0 0 1px rgba(255,255,255,.7);
+        }
+
+        .address{
+            flex:1;
+            height:22px;
+            box-sizing:border-box;
+            border:1px solid #8ea3bd;
+            background:#fff;
+            display:flex;
+            align-items:center;
+            padding:0 6px;
+            gap:5px;
+            color:#1a1a1a;
+        }
+        .address .folder{
+            width:13px; height:10px;
+            background:linear-gradient(180deg,#fbe08a,#e8b83c);
+            border:1px solid #b78c20;
+            border-radius:1px;
+        }
+        .address .arrow{ margin-left:auto; font-size:8px; color:#555; }
+
+        .search{
+            width:130px;
+            height:22px;
+            box-sizing:border-box;
+            border:1px solid #8ea3bd;
+            background:#fff;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding:0 6px;
+            color:#8a8a8a;
+            font-style:italic;
+        }
+        .search u{
+            text-decoration:none;
+            font-style:normal;
+            color:#4a6a9a;
+        }
+
+        /* ---------- Inner panel ---------- */
+        .panel{
+            flex:1;
+            display:flex;
+            flex-direction:column;
+            min-height:0;
+            border:1px solid #6d86a6;
+            background:#fff;
+        }
+
+        .toolbar{
+            height:28px;
+            flex-shrink:0;
+            display:flex;
+            align-items:center;
+            gap:22px;
+            padding:0 12px;
+            background:linear-gradient(180deg,#fbfcfe 0%,#eef2f9 50%,#e2e9f4 100%);
+            border-bottom:1px solid #c9d3e2;
+            color:#1e395b;
+        }
+        .toolbar .dd{ font-size:8px; margin-left:4px; }
+
+        .body{
+            flex:1;
+            display:flex;
+            min-height:0;
+        }
+
+        .sidebar{
+            width:120px;
+            flex-shrink:0;
+            box-sizing:border-box;
+            padding:10px 8px;
+            background:linear-gradient(180deg,#ffffff,#f5f8fc);
+            border-right:1px solid #dde4ef;
+            overflow:hidden;
+        }
+        .sidebar h4{
+            margin:0 0 4px 0;
+            font-weight:normal;
+            color:#1e395b;
+            display:flex;
+            align-items:center;
+            gap:5px;
+        }
+        .sidebar h4:before{
+            content:"";
+            width:11px; height:11px;
+            background:linear-gradient(135deg,#9fc4ec,#5b8fcc);
+            border-radius:2px;
+        }
+        .sidebar p{
+            margin:0 0 3px 16px;
+            color:#333;
+        }
+        .sidebar .gap{ height:10px; }
+
+        .content{
+            flex:1;
+            padding:12px 14px;
+            overflow:hidden;
+            color:#222;
+            line-height:1.5;
+        }
+        .content h3{
+            margin:0 0 6px 0;
+            font-size:13px;
+            font-weight:normal;
+            color:#1e395b;
+        }
+        .content p{ margin:0 0 8px 0; }
+
+        /* ---------- Status bar ---------- */
+        .status{
+            height:34px;
+            flex-shrink:0;
+            display:flex;
+            align-items:center;
+            gap:10px;
+            padding:0 12px;
+            box-sizing:border-box;
+            background:linear-gradient(180deg,#f6f9fd 0%,#e7eef8 100%);
+            border-top:1px solid #d3dcea;
+            color:#444;
+            font-size:11px;
+        }
+        .status .ico{
+            width:20px; height:20px;
+            background:linear-gradient(135deg,#9fc4ec,#5b8fcc);
+            border-radius:3px;
+            flex-shrink:0;
+        }
+        .status .big{ font-size:12px; color:#1e395b; }
+        .status .meta{ margin-left:8px; color:#666; }
+    </style>
+</head>
+
+<body>
+
+    <div id="background"></div>
+
+    <div id="screen">
+
+        <div class="window">
+
+            <!-- title bar buttons -->
+            <div class="titlebar">
+                <div class="controls">
+                    <span class="min"><i></i></span>
+                    <span class="max"><i></i></span>
+                    <span class="close">✕</span>
+                </div>
+            </div>
+
+            <!-- back / forward, address bar, search -->
+            <div class="navrow">
+                <div class="navbtns"><b>◀</b><b>▶</b></div>
+                <div class="address">
+                    <span class="folder"></span>
+                    <span>« My Computer </span> <span>▸</span> <span>Contact Me</span>
+                    <span class="arrow">▼</span>
+                </div>
+                <div class="search"><span>Search</span><u>⌕</u></div>
+            </div>
+
+            <!-- main white panel -->
+            <div class="panel">
+
+                <div class="toolbar">
+                    <span>Contact <span class="dd">▼</span></span>
+                    <span>Me</span>
+                </div>
+
+                <div class="body">
+                    <div class="sidebar">
+                        <h4>My Computer</h4>
+                        <p>Desktop</p>
+                        <p>Documents</p>
+                        <p>Downloads</p>
+                        <div class="gap"></div>
+                        <h4>Home</h4>
+                        <p>Gallery</p>
+                        <p>Recycle Bin</p>
+                    </div>
+
+                    <div class="content">
+                        <h3><u>Here's how you can reach me!</u></h3>
+                        <p>email : dasmita2101@gmail.com</p>
+                        <p><a href="https://www.linkedin.com/in/smita-das-a23b26312?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app">LinkedIn</a> </p> 
+                            <p><a href="https://github.com/dasmiita">GitHub</a></p>
+                            <p><a href = "https://www.instagram.com/smiiittenn?jplx=N3dxaGJyM2Y3YXQw">Instagram</a></p>
+
+                        
+                        <p> 
+Have an interesting idea, an opportunity to share, or just want to talk about something cool? I'm always up for meeting new people, exchanging ideas and exploring possibilities.
+Let's connect :)
+</p>
+                    </div>
+                </div>
+
+                <div class="status">
+                    <span class="ico"></span>
+                    <span class="big">Smita's corner of the world</span>
+                  
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

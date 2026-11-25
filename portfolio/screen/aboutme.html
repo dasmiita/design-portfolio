@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>About Me - Solitaire</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    overflow:hidden;
+    font-family:Segoe UI, sans-serif;
+}
+
+/* ---------------- BACKGROUND ---------------- */
+
+#background{
+    position:fixed;
+    inset:0;
+    background-image:url("../bg4.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+}
+
+/* ---------------- WINDOW ---------------- */
+
+#screen{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%) scale(0);
+    animation:popup 1s ease forwards;
+    width:930px;
+    max-width:95vw;
+}
+
+#screen img{
+    width:100%;
+    display:block;
+    pointer-events:none;
+}
+
+/* ---------------- CLICKABLE DECK ---------------- */
+
+#deck{
+    position:absolute;
+    top:92px;
+    left:56px;
+
+    width:92px;
+    height:126px;
+
+    cursor:pointer;
+    z-index:50;
+}
+
+/* ---------------- FOUNDATION SLOTS ---------------- */
+
+.foundation{
+    position:absolute;
+    width:92px;
+    height:126px;
+}
+
+#slot1{ top:82px; left:425px; }
+#slot2{ top:82px; left:545px; }
+#slot3{ top:82px; left:665px; }
+#slot4{ top:82px; left:785px; }
+
+/* ---------------- CARD ---------------- */
+
+.info-card{
+
+    position:fixed;
+
+    width:92px;
+    height:126px;
+
+    background:linear-gradient(to bottom,#ffffff,#f3f3f3);
+
+    border-radius:7px;
+
+    border:2px solid #ffffff;
+
+    box-shadow:
+        0 0 0 1px #bdbdbd,
+        0 6px 14px rgba(0,0,0,0.45);
+
+    overflow:hidden;
+
+    z-index:500;
+
+    will-change:transform;
+    backface-visibility:hidden;
+    transform-style:preserve-3d;
+}
+.go-back-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 3px 9px;
+    margin-top: 7px;
+
+    font-size: 6px;
+    font-weight: 300;
+    font-family: inherit;
+    
+
+    color: #ffffff;
+    background: rgba(172, 30, 30, 0.75);
+
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 0px;
+
+    text-decoration: none;
+    cursor: pointer;
+
+    transition: all 0.25s ease;
+}
+
+.go-back-btn:hover {
+    background: #fff;
+    transform: translateX(-3px);
+    border-color: #888;
+}
+
+/* ---------------- CARD CONTENT ---------------- */
+
+.card-inner{
+    position:relative;
+    width:100%;
+    height:100%;
+    padding:8px;
+    color:#111;
+}
+
+.card-inner.red{
+    color:#c40000;
+}
+
+.card-corner{
+    position:absolute;
+    font-size:16px;
+    font-weight:bold;
+    line-height:0.9;
+}
+
+.card-corner.top{
+    top:6px;
+    left:6px;
+}
+
+.card-corner.bottom{
+    bottom:6px;
+    right:6px;
+    transform:rotate(180deg);
+}
+
+.card-title{
+    margin-top:22px;
+    text-align:center;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:0.5px;
+}
+
+.card-text{
+    margin-top:8px;
+    font-size:5px;
+    line-height:1.35;
+    text-align:justify;
+    color:#222;
+}
+
+/* ---------------- ANIMATIONS ---------------- */
+
+@keyframes popup{
+
+    0%{
+        opacity:0;
+        transform:translate(-50%,-50%) scale(0) rotate(-8deg);
+    }
+
+    70%{
+        opacity:1;
+        transform:translate(-50%,-50%) scale(1.05) rotate(1deg);
+    }
+
+    100%{
+        opacity:1;
+        transform:translate(-50%,-50%) scale(1);
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="background"></div>
+
+<div id="screen">
+
+    <!-- SOLITAIRE IMAGE -->
+    <img src="solitairebg.png">
+
+    <!-- CLICKABLE DECK -->
+    <div id="deck"></div>
+
+    <!-- FOUNDATION SLOTS -->
+    <div class="foundation" id="slot1"></div>
+    <div class="foundation" id="slot2"></div>
+    <div class="foundation" id="slot3"></div>
+    <div class="foundation" id="slot4"></div>
+
+</div>
+
+<script>
+
+/* ---------------- DATA ---------------- */
+
+const deck = document.getElementById("deck");
+
+const cardData = [
+
+{
+    suit:"♥",
+    value:"A",
+    title:"WHO",
+    text:"Hi, I'm Smita! Welcome to my little corner of the internet. I'm an aspiring software developer who swims a little too much in her creative juices. I love exploring ideas, experimenting with different technologies, and turning every boring project into something that is both functional and fun."
+},
+
+{
+    suit:"♠",
+    value:"K",
+    title:"WHEN",
+    text:"My love for the tech world started when I was 7, playing with my dad's laptop while he worked. Between Games of Purble Place and Solitaire, I found myself falling in love with screen. Those childhood favourites have even inspired this very project!"
+},
+
+{
+    suit:"♦",
+    value:"Q",
+    title:"WHY",
+    text:"Over the years, my curiosity has grown into a deeper understanding of what goes on behind the scenes of innovation. I've had the chance to learn, create, and collaborate with some incredibly talented people, and now I'm ready to dive even deeper, explore new possibilities, and see just how far I can go."
+},
+
+{
+    suit:"♣",
+    value:"J",
+    title:"BONUS",
+    text:"Also does it help if I tell you I'm currently the President of my university's Literary Club, and have picked up a few awards along the way for essay writing and debating and MUNs. I also happen to be a pretty decent singer (if I do say so myself!). Maybe I'm just awesome both on stage and behind a screen!"
+},
+
+{
+    suit:"♥",
+    value:"★",
+    title:"GO BACK",
+    text:"Return to the homepage."
+    
+}
+
+];
+
+/* ---------------- STATE ---------------- */
+
+let currentCard = 0;
+let busy = false;
+
+/* ---------------- HELPERS ---------------- */
+
+function getCenterTransform(card){
+
+    const rect = card.getBoundingClientRect();
+
+    return {
+
+        x:
+        (window.innerWidth / 2)
+        - rect.left
+        - (rect.width / 2),
+
+        y:
+        (window.innerHeight / 2)
+        - rect.top
+        - (rect.height / 2)
+
+    };
+
+}
+
+function getSlotTransform(card, slot){
+
+    const cardRect = card.getBoundingClientRect();
+    const slotRect = slot.getBoundingClientRect();
+
+    return {
+
+        x: slotRect.left - cardRect.left,
+        y: slotRect.top - cardRect.top
+
+    };
+
+}
+
+/* ---------------- CLICK ---------------- */
+
+deck.addEventListener("click", () => {
+
+    if(busy) return;
+
+    if(currentCard >= 5) return;
+
+    busy = true;
+
+    if(currentCard < 4){
+
+        createNormalCard(
+            cardData[currentCard],
+            currentCard + 1
+        );
+
+    }else{
+
+        createFinalCard(cardData[4]);
+
+    }
+
+});
+
+/* ---------------- NORMAL CARDS ---------------- */
+function createNormalCard(data, slotNumber) {
+
+    const slot = document.getElementById(`slot${slotNumber}`);
+    const deckRect = deck.getBoundingClientRect();
+
+    const card = document.createElement("div");
+    card.className = "info-card";
+    card.style.left = deckRect.left + "px";
+    card.style.top  = deckRect.top  + "px";
+
+    const redClass =
+        currentCard === 0 ||
+        currentCard === 2 ||
+        currentCard === 4
+        ? "red" : "";
+
+    card.innerHTML = `
+        <div class="card-inner ${redClass}">
+            <div class="card-corner top">${data.value}<br>${data.suit}</div>
+            <div class="card-corner bottom">${data.value}<br>${data.suit}</div>
+            <div class="card-title">${data.title}</div>
+            <div class="card-text">${data.text}</div>
+        </div>
+    `;
+
+    document.body.appendChild(card);
+
+    /* Pre-compute the slot destination BEFORE any transform is applied */
+    const slotRect  = slot.getBoundingClientRect();
+    const destX = slotRect.left - deckRect.left;
+    const destY = slotRect.top  - deckRect.top;
+
+    requestAnimationFrame(() => {
+
+        const center = getCenterTransform(card);
+
+        /* STEP 1 — zoom to center */
+        card.style.transition = "transform 700ms cubic-bezier(0.22,1,0.36,1)";
+        card.style.transform  = `translate3d(${center.x}px, ${center.y}px, 0) scale(3.5)`;
+
+        /* STEP 2 — fly directly to slot */
+        setTimeout(() => {
+
+            card.style.transition = "transform 750ms cubic-bezier(0.22,1,0.36,1)";
+            card.style.transform  = `translate3d(${destX}px, ${destY}px, 0) scale(1)`;
+
+            /* STEP 3 — snap into slot as a child */
+            setTimeout(() => {
+
+                card.style.transition = "none";
+                card.style.transform  = "none";
+                card.style.position   = "absolute";
+                card.style.left       = "0";
+                card.style.top        = "0";
+
+                slot.appendChild(card);
+
+                currentCard++;
+                busy = false;
+
+            }, 760);
+
+        }, 3000);
+
+    });
+}
+
+/* ---------------- FINAL CARD ---------------- */
+
+function createFinalCard(data){
+
+    const deckRect = deck.getBoundingClientRect();
+
+    const card = document.createElement("div");
+
+    card.className = "info-card";
+
+    card.style.left = deckRect.left + "px";
+    card.style.top = deckRect.top + "px";
+
+    /* fifth card red */
+    card.innerHTML = `
+
+        <div class="card-inner red">
+
+            <div class="card-corner top">
+                ${data.value}<br>${data.suit}
+            </div>
+
+            <div class="card-corner bottom">
+                ${data.value}<br>${data.suit}
+            </div>
+
+            <div class="card-title">
+                ${data.title}
+            </div>
+
+            <div class="card-text">
+                ${data.text}
+            </div>
+            <a href='index.html' class="go-back-btn">
+    ← Go Back
+</a>
+
+        </div>
+
+    `;
+
+    document.body.appendChild(card);
+
+    requestAnimationFrame(() => {
+
+        /* PERFECT CENTER */
+
+        const center = getCenterTransform(card);
+
+        card.style.transition =
+            "transform 850ms cubic-bezier(0.22,1,0.36,1)";
+
+        card.style.transform = `
+            translate3d(${center.x}px, ${center.y}px, 0)
+            scale(3.5)
+        `;
+
+    });
+
+    card.addEventListener("click", () => {
+
+        location.href = "index.html";
+
+    });
+
+    currentCard++;
+    busy = false;
+
+}
+
+</script>
+
+</body>
+</html>

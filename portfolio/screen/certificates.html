@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Certifications — Minesweeper</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Chakra+Petch:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cell: 62px;
+  --gap: 3px;
+  --c0: #c0c0c0;
+  --raised: #ffffff;
+  --shadow: #808080;
+  --face: #dfdfdf;
+  --win-gold: #ffd700;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  overflow: hidden;
+  background: #1c1c1c;
+  font-family: 'Chakra Petch', sans-serif;
+}
+
+/* ── BACKGROUND ── */
+#background{
+    position:fixed;
+    inset:0;
+    background-image:url("../bg4.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+}
+#bg::after {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.02) 39px, rgba(255,255,255,0.02) 40px),
+    repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.02) 39px, rgba(255,255,255,0.02) 40px);
+}
+
+/* ── WINDOW ── */
+#window {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  animation: popup 0.9s cubic-bezier(0.22,1,0.36,1) forwards;
+  width: 780px;
+  border-radius: 4px;
+  background: var(--c0);
+  box-shadow:
+    inset -2px -2px 0 var(--shadow),
+    inset 2px 2px 0 var(--raised),
+    0 30px 80px rgba(0,0,0,0.8),
+    0 0 0 1px #555;
+}
+
+/* ── TITLE BAR ── */
+#titlebar {
+  height: 28px;
+  background: linear-gradient(90deg, #000080, #1084d0);
+  border-radius: 3px 3px 0 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 6px;
+  user-select: none;
+}
+#title-left { display: flex; align-items: center; gap: 6px; }
+#title-icon { font-size: 14px; }
+#title-text {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px; color: white; letter-spacing: 0.5px;
+}
+#win-btns { display: flex; gap: 3px; }
+.wbtn {
+  width: 18px; height: 16px;
+  background: var(--c0);
+  border: none; cursor: pointer;
+  font-size: 10px; font-weight: 900; color: #000;
+  box-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #fff;
+  display: flex; align-items: center; justify-content: center;
+}
+.wbtn:active { box-shadow: inset 1px 1px 0 #808080, inset -1px -1px 0 #fff; }
+
+/* ── MENU BAR ── */
+#menubar {
+  height: 22px;
+  background: var(--c0);
+  border-bottom: 1px solid #aaa;
+  display: flex; align-items: center;
+  padding: 0 8px; gap: 4px;
+}
+.menu-item {
+  font-size: 11px; padding: 2px 8px; cursor: pointer; color: #000;
+}
+.menu-item:hover { background: #000080; color: white; }
+
+/* ── INNER PANEL ── */
+#panel {
+  margin: 8px;
+  background: var(--c0);
+  box-shadow: inset 2px 2px 0 #808080, inset -2px -2px 0 #fff;
+  padding: 8px;
+}
+
+/* ── TOP BAR ── */
+#topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--face);
+  box-shadow: inset 2px 2px 0 #808080, inset -2px -2px 0 #fff;
+  padding: 6px 14px; margin-bottom: 8px;
+}
+.counter {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 28px; font-weight: 700;
+  color: #ff0000;
+  background: #000;
+  padding: 4px 8px; min-width: 60px; text-align: center;
+  box-shadow: inset 1px 1px 0 #808080, inset -1px -1px 0 #fff;
+  letter-spacing: 3px;
+}
+#smiley {
+  width: 38px; height: 38px;
+  background: var(--c0);
+  box-shadow: inset -2px -2px 0 #808080, inset 2px 2px 0 #fff;
+  border: none; cursor: pointer;
+  font-size: 22px; display: flex; align-items: center; justify-content: center;
+  border-radius: 2px; transition: filter 0.1s;
+}
+#smiley:active { box-shadow: inset 2px 2px 0 #808080, inset -2px -2px 0 #fff; }
+
+/* ── GRID ── */
+#grid {
+  display: grid;
+  grid-template-columns: repeat(9, var(--cell));
+  grid-template-rows: repeat(9, var(--cell));
+  gap: var(--gap);
+  background: #aaa;
+  box-shadow: inset 2px 2px 0 #808080, inset -2px -2px 0 #fff;
+  padding: var(--gap);
+}
+
+/* ── CELL ── */
+.cell {
+  width: var(--cell); height: var(--cell);
+  background: var(--c0);
+  box-shadow: inset -2px -2px 0 #808080, inset 2px 2px 0 #fff;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  transition: background 0.05s;
+  user-select: none;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 18px; font-weight: 900;
+}
+.cell:hover:not(.revealed):not(.flagged) {
+  background: #d0d0d0;
+}
+.cell:active:not(.revealed):not(.flagged) {
+  box-shadow: inset 2px 2px 0 #808080, inset -2px -2px 0 #fff;
+}
+.cell.revealed {
+  background: #bdbdbd;
+  box-shadow: inset 1px 1px 0 #808080;
+  cursor: default;
+}
+.cell.flagged { cursor: pointer; }
+
+/* number colors */
+.n1 { color: #0000ff; }
+.n2 { color: #008000; }
+.n3 { color: #ff0000; }
+.n4 { color: #000080; }
+.n5 { color: #800000; }
+.n6 { color: #008080; }
+.n7 { color: #000000; }
+.n8 { color: #808080; }
+
+/* ── CERT CELL ── */
+.cell.cert {
+  background: var(--c0);
+  cursor: pointer;
+}
+.cell.cert.revealed {
+  background: linear-gradient(135deg, #fffbe6, #fff3c4);
+  box-shadow: inset 1px 1px 0 #c8a800, 0 0 12px rgba(33, 96, 54, 0.4);
+  cursor: pointer;
+}
+.cert-icon {
+  font-size: 28px;
+  filter: drop-shadow(0 0 6px rgba(255,200,0,0.7));
+}
+@keyframes pulse-icon {
+  0%,100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+/* ── FLAG ── */
+.flag-marker {
+  font-size: 20px;
+  pointer-events: none;
+}
+
+/* ── CERT MODAL ── */
+#cert-modal {
+  display: none;
+  position: fixed; inset: 0; z-index: 200;
+  align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.0);
+  transition: background 0.3s;
+}
+#cert-modal.show {
+  display: flex;
+  background: rgba(0,0,0,0.65);
+}
+
+#cert-card {
+  width: 460px;
+  background: var(--c0);
+  box-shadow:
+    inset -2px -2px 0 #808080,
+    inset 2px 2px 0 #fff,
+    0 40px 80px rgba(0,0,0,0.7);
+  border-radius: 2px;
+  overflow: hidden;
+  transform: scale(0.7) rotate(-4deg);
+  opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.22,1,0.36,1), opacity 0.3s ease;
+}
+#cert-modal.show #cert-card {
+  transform: scale(1) rotate(0deg);
+  opacity: 1;
+}
+
+#cert-card-titlebar {
+  height: 26px;
+  background: linear-gradient(90deg, #000080, #1084d0);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 6px;
+}
+#cert-card-title {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px; color: white; letter-spacing: 0.5px;
+}
+#cert-close {
+  width: 16px; height: 14px;
+  background: var(--c0);
+  box-shadow: inset -1px -1px 0 #808080, inset 1px 1px 0 #fff;
+  border: none; cursor: pointer;
+  font-size: 10px; font-weight: 900; color: #000;
+  display: flex; align-items: center; justify-content: center;
+}
+
+#cert-body {
+  padding: 24px 28px 28px;
+}
+
+#cert-badge-row {
+  display: flex; align-items: center; gap: 18px;
+  margin-bottom: 18px;
+}
+#cert-emoji {
+  font-size: 52px;
+ 
+}
+#cert-meta h2 {
+  font-size: 16px; font-weight: 700; color: #0a0a6a;
+  line-height: 1.2; margin-bottom: 6px;
+}
+#cert-meta .issuer {
+  font-size: 11px; color: #555; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 1px;
+}
+#cert-meta .year {
+  display: inline-block;
+  margin-top: 6px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px; color: #fff;
+  background: #000080;
+  padding: 2px 8px;
+}
+
+#cert-desc {
+  font-size: 12px; line-height: 1.7; color: #333;
+  border-top: 1px solid #bbb;
+  padding-top: 14px;
+}
+
+#cert-skills-row {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-top: 14px;
+}
+.cert-skill-chip {
+  font-size: 10px; font-weight: 700; color: #000080;
+  background: #e8eeff;
+  border: 1px solid #8080c0;
+  padding: 2px 8px;
+  box-shadow: inset -1px -1px 0 #8080c0, inset 1px 1px 0 #fff;
+  letter-spacing: 0.5px;
+}
+
+/* ── WIN OVERLAY ── */
+#win-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 300;
+  align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.0);
+  transition: background 0.5s;
+}
+#win-overlay.show {
+  display: flex;
+  background: rgba(0,0,0,0.75);
+}
+#win-box {
+  background: var(--c0);
+  box-shadow: inset -3px -3px 0 #808080, inset 3px 3px 0 #fff, 0 40px 100px rgba(0,0,0,0.8);
+  padding: 0;
+  width: 420px;
+  transform: scale(0.5);
+  opacity: 0;
+  transition: transform 0.5s cubic-bezier(0.22,1,0.36,1) 0.2s, opacity 0.4s ease 0.2s;
+}
+#win-overlay.show #win-box { transform: scale(1); opacity: 1; }
+#win-box-titlebar {
+  height: 26px;
+  background: linear-gradient(90deg, #000080, #1084d0);
+  display: flex; align-items: center; padding: 0 8px;
+}
+#win-box-titlebar span {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px; color: white;
+}
+#win-box-body {
+  padding: 28px 32px 32px;
+  text-align: center;
+}
+#win-box-body .trophy { font-size: 56px; margin-bottom: 12px; }
+#win-box-body h2 {
+  font-size: 18px; font-weight: 700; color: #0a0a6a;
+  margin-bottom: 8px;
+}
+#win-box-body p { font-size: 12px; color: #444; margin-bottom: 20px; line-height: 1.6; }
+#win-time {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 32px; color: #ff0000; background: #000;
+  padding: 6px 16px; display: inline-block; margin-bottom: 20px;
+  box-shadow: inset 1px 1px 0 #808080;
+}
+.win-btn {
+  background: var(--c0);
+  box-shadow: inset -2px -2px 0 #808080, inset 2px 2px 0 #fff;
+  border: none; padding: 6px 24px;
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 12px; cursor: pointer; font-weight: 600;
+}
+.win-btn:active { box-shadow: inset 2px 2px 0 #808080, inset -2px -2px 0 #fff; }
+
+/* ── STATUS BAR ── */
+#statusbar {
+  height: 20px;
+  background: var(--c0);
+  border-top: 1px solid #aaa;
+  display: flex; align-items: center;
+  padding: 0 10px; gap: 8px;
+}
+.status-panel {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px; color: #333;
+  padding: 1px 6px;
+  box-shadow: inset 1px 1px 0 #808080, inset -1px -1px 0 #fff;
+}
+
+@keyframes popup {
+  0%   { opacity:0; transform:translate(-50%,-50%) scale(0) rotate(-6deg); }
+  70%  { opacity:1; transform:translate(-50%,-50%) scale(1.03) rotate(0.5deg); }
+  100% { opacity:1; transform:translate(-50%,-50%) scale(1) rotate(0deg); }
+}
+
+@keyframes reveal-cell {
+  0%   { transform: scale(1.3); opacity:0; }
+  100% { transform: scale(1);   opacity:1; }
+}
+.cell.just-revealed { animation: reveal-cell 0.15s ease forwards; }
+</style>
+</head>
+<body>
+<div id="background"></div>
+
+<div id="window">
+  <div id="titlebar">
+    <div id="title-left">
+      <span id="title-icon">💣</span>
+      <span id="title-text">Minesweeper — Certifications</span>
+    </div>
+    <div id="win-btns">
+      <button class="wbtn">_</button>
+      <button class="wbtn">□</button>
+      <button class="wbtn" onclick="newGame()">✕</button>
+    </div>
+  </div>
+
+  <div id="menubar">
+    <span class="menu-item">Game</span>
+    <span class="menu-item">Help</span>
+  </div>
+
+  <div id="panel">
+    <div id="topbar">
+      <div class="counter" id="cert-counter">006</div>
+      <button id="smiley" onclick="newGame()">🙂</button>
+      <div class="counter" id="timer-display">000</div>
+    </div>
+    <div id="grid"></div>
+  </div>
+
+  <div id="statusbar">
+    <div class="status-panel" id="status-text">Left-click to reveal · Right-click to flag</div>
+    <div class="status-panel" id="found-text">Found: 0 / 6</div>
+  </div>
+</div>
+
+<!-- CERT DETAIL MODAL -->
+<div id="cert-modal">
+  <div id="cert-card">
+    <div id="cert-card-titlebar">
+      <span id="cert-card-title">Certificate Details</span>
+      <button id="cert-close" onclick="closeCertModal()">✕</button>
+    </div>
+    <div id="cert-body">
+      <div id="cert-badge-row">
+        <div id="cert-emoji"></div>
+        <div id="cert-meta">
+          <h2 id="cert-name"></h2>
+          <div class="issuer" id="cert-issuer"></div>
+          <div class="year" id="cert-year"></div>
+        </div>
+      </div>
+      <div id="cert-desc"></div>
+      <div id="cert-skills-row"></div>
+    </div>
+  </div>
+</div>
+
+<!-- WIN OVERLAY -->
+<div id="win-overlay">
+  <div id="win-box">
+    <div id="win-box-titlebar"><span>🏆 Congratulations!</span></div>
+    <div id="win-box-body">
+      <div class="trophy">🏆</div>
+      <h2>All Certifications Found!</h2>
+      <p>You uncovered every credential hidden in the field.<br>Time taken:</p>
+      <div id="win-time">000</div>
+      <br>
+      <button class="win-btn" onclick="newGame()">Play Again</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ JUMP TO THE FUN BUTTON ══ -->
+<div id="jump-btn-wrap">
+  <button id="jump-btn" onclick="openFunDialog()">⭐ Jump to the Fun</button>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   CERTIFICATIONS DATA — edit these!
+═══════════════════════════════════════════ */
+const CERTS = [
+  {
+    emoji: '☁️',
+    name: 'NPTEL Cloud Computing Certification',
+    issuer: 'NPTEL',
+    year: '2026',
+    desc: 'Demonstrates understanding of cloud computing concepts, service models (IaaS, PaaS, SaaS), virtualization, cloud architecture, resource management, and distributed computing.',
+    skills: ['AWS', 'Cloud', 'Architecture', 'EC2', 'S3', 'Cloud Computing', 'Virtualization', 'IaaS/PaaS/SaaS', 'Cloud Architecture', 'Distributed Computing']
+  },
+  {
+    emoji: '🎨',
+    name: 'Google UIUX Design Professional Certificate',
+    issuer: 'Google (Coursera)',
+    year: '2025',
+    desc: 'Demonstrates proficiency in user experience design, including UX research, wireframing, prototyping, usability testing, and designing intuitive user-centered digital experiences.',
+    skills: ['UI/UX Design', 'Figma', 'UX Research', 'Wireframing', 'Prototyping', 'Usability Testing']
+},
+  {
+    emoji: '🧠',
+    name: 'Graph and Dynamic Programming Camp',
+    issuer: 'AlgoUniversity',
+    year: '2026',
+    desc: 'Demonstrates problem-solving proficiency in advanced data structures and algorithms, with a focus on graph theory, dynamic programming, algorithmic optimization, and competitive programming techniques.',
+    skills: ['Data Structures & Algorithms', 'Graph Theory', 'Dynamic Programming', 'Problem Solving', 'Competitive Programming']
+},
+{
+    emoji: '📱',
+    name: 'Android App Development Certificate',
+    issuer: 'Meta (Coursera)',
+    year: '2025',
+    desc: 'Demonstrates proficiency in Android application development, including building mobile interfaces, managing app architecture, implementing core functionalities, and developing interactive Android applications.',
+    skills: ['Android Development', 'Kotlin', 'Mobile UI Design', 'App Architecture', 'Mobile Application Development']
+},
+  {
+    emoji: '💡',
+    name: 'Innovation by Design',
+    issuer: 'NPTEL',
+    year: '2025',
+    desc: 'Demonstrates understanding of design thinking, creative problem-solving, innovation strategies, and human-centered approaches to developing solutions for real-world challenges.',
+    skills: ['Design Thinking', 'Innovation', 'Creative Problem Solving', 'Human-Centered Design', 'Ideation']
+},
+];
+
+/* ═══════════════════════════════════════════
+   GAME STATE
+═══════════════════════════════════════════ */
+const ROWS = 9, COLS = 9, TOTAL_CERTS = 6;
+let grid = [], certPositions = [], revealed = [], flagged = [];
+let firstClick = true, gameOver = false, gameWon = false;
+let timerInterval = null, elapsed = 0;
+let foundCount = 0;
+
+/* ═══════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════ */
+function newGame() {
+  clearInterval(timerInterval);
+  elapsed = 0; firstClick = true; gameOver = false; gameWon = false; foundCount = 0;
+  updateTimer(0);
+  document.getElementById('cert-counter').textContent = '006';
+  document.getElementById('found-text').textContent = 'Found: 0 / 6';
+  document.getElementById('smiley').textContent = '🙂';
+  document.getElementById('status-text').textContent = 'Left-click to reveal · Right-click to flag';
+  document.getElementById('win-overlay').classList.remove('show');
+
+  // build empty grid
+  grid = Array.from({length:ROWS}, () => Array(COLS).fill(0));
+  revealed = Array.from({length:ROWS}, () => Array(COLS).fill(false));
+  flagged  = Array.from({length:ROWS}, () => Array(COLS).fill(false));
+  certPositions = [];
+
+  renderGrid();
+}
+
+/* place certs after first click to ensure first click is never a cert */
+function placeCerts(excludeR, excludeC) {
+  const positions = [];
+  while(positions.length < TOTAL_CERTS) {
+    const r = Math.floor(Math.random() * ROWS);
+    const c = Math.floor(Math.random() * COLS);
+    if(r === excludeR && c === excludeC) continue;
+    // avoid neighbors of first click for a nice opening
+    if(Math.abs(r-excludeR) <= 1 && Math.abs(c-excludeC) <= 1) continue;
+    if(positions.some(p => p[0]===r && p[1]===c)) continue;
+    positions.push([r,c]);
+  }
+  certPositions = positions;
+
+  // reset grid numbers
+  grid = Array.from({length:ROWS}, () => Array(COLS).fill(0));
+  for(const [r,c] of positions) grid[r][c] = -1; // -1 = cert
+
+  // compute neighbor counts
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) {
+    if(grid[r][c] === -1) continue;
+    let count = 0;
+    for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++) {
+      const nr=r+dr, nc=c+dc;
+      if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&grid[nr][nc]===-1) count++;
+    }
+    grid[r][c] = count;
+  }
+}
+
+/* ═══════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════ */
+function renderGrid() {
+  const el = document.getElementById('grid');
+  el.innerHTML = '';
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.dataset.r = r; cell.dataset.c = c;
+
+    if(revealed[r][c]) {
+      cell.classList.add('revealed');
+      if(grid[r][c] === -1) {
+        // cert found
+        cell.classList.add('cert');
+        const ci = getCertIndex(r,c);
+        const icon = document.createElement('span');
+        icon.className = 'cert-icon';
+        icon.textContent = CERTS[ci] ? CERTS[ci].emoji : '🏅';
+        cell.appendChild(icon);
+        cell.addEventListener('click', () => openCertModal(r,c));
+        cell.style.cursor = 'pointer';
+      } else if(grid[r][c] > 0) {
+        cell.classList.add('n'+grid[r][c]);
+        cell.textContent = grid[r][c];
+      }
+    } else if(flagged[r][c]) {
+      cell.classList.add('flagged');
+      const flag = document.createElement('span');
+      flag.className = 'flag-marker';
+      flag.textContent = '🚩';
+      cell.appendChild(flag);
+      cell.addEventListener('contextmenu', e => { e.preventDefault(); handleRightClick(r,c); });
+    } else {
+      cell.addEventListener('click', () => handleClick(r,c));
+      cell.addEventListener('contextmenu', e => { e.preventDefault(); handleRightClick(r,c); });
+    }
+
+    el.appendChild(cell);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   INTERACTION
+═══════════════════════════════════════════ */
+function handleClick(r, c) {
+  if(gameOver || gameWon || revealed[r][c] || flagged[r][c]) return;
+
+  if(firstClick) {
+    firstClick = false;
+    placeCerts(r, c);
+    startTimer();
+    document.getElementById('status-text').textContent = 'Hunt the certificates! Right-click to flag';
+  }
+
+  if(grid[r][c] === -1) {
+    // found a cert!
+    revealCell(r, c);
+    foundCount++;
+    document.getElementById('found-text').textContent = `Found: ${foundCount} / 6`;
+    document.getElementById('cert-counter').textContent = String(TOTAL_CERTS - foundCount).padStart(3,'0');
+    document.getElementById('smiley').textContent = '😲';
+    setTimeout(() => {
+      if(!gameWon) document.getElementById('smiley').textContent = '🙂';
+    }, 600);
+    setTimeout(() => openCertModal(r, c), 300);
+    checkWin();
+  } else {
+    floodReveal(r, c);
+    renderGrid();
+  }
+}
+
+function handleRightClick(r, c) {
+  if(gameOver || gameWon || revealed[r][c]) return;
+  flagged[r][c] = !flagged[r][c];
+  renderGrid();
+}
+
+function floodReveal(r, c) {
+  if(r<0||r>=ROWS||c<0||c>=COLS) return;
+  if(revealed[r][c] || flagged[r][c] || grid[r][c]===-1) return;
+  revealed[r][c] = true;
+  if(grid[r][c] === 0) {
+    for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++) {
+      if(dr===0&&dc===0) continue;
+      floodReveal(r+dr, c+dc);
+    }
+  }
+}
+
+function revealCell(r, c) {
+  revealed[r][c] = true;
+  flagged[r][c] = false;
+  renderGrid();
+}
+
+function getCertIndex(r, c) {
+  return certPositions.findIndex(p => p[0]===r && p[1]===c);
+}
+
+/* ═══════════════════════════════════════════
+   CERT MODAL
+═══════════════════════════════════════════ */
+function openCertModal(r, c) {
+  const idx = getCertIndex(r, c);
+  if(idx === -1) return;
+  const cert = CERTS[idx];
+
+  document.getElementById('cert-emoji').textContent = cert.emoji;
+  document.getElementById('cert-name').textContent = cert.name;
+  document.getElementById('cert-issuer').textContent = cert.issuer;
+  document.getElementById('cert-year').textContent = cert.year;
+  document.getElementById('cert-desc').textContent = cert.desc;
+  document.getElementById('cert-card-title').textContent = `Certificate — ${cert.issuer}`;
+
+  const skillsRow = document.getElementById('cert-skills-row');
+  skillsRow.innerHTML = '';
+  cert.skills.forEach(s => {
+    const chip = document.createElement('span');
+    chip.className = 'cert-skill-chip';
+    chip.textContent = s;
+    skillsRow.appendChild(chip);
+  });
+
+  document.getElementById('cert-modal').classList.add('show');
+}
+
+function closeCertModal() {
+  document.getElementById('cert-modal').classList.remove('show');
+}
+document.getElementById('cert-modal').addEventListener('click', function(e) {
+  if(e.target === this) closeCertModal();
+});
+
+/* ═══════════════════════════════════════════
+   WIN
+═══════════════════════════════════════════ */
+function checkWin() {
+  if(foundCount === TOTAL_CERTS) {
+    gameWon = true;
+    clearInterval(timerInterval);
+    document.getElementById('smiley').textContent = '😎';
+    document.getElementById('status-text').textContent = 'All certifications uncovered!';
+    setTimeout(() => {
+      document.getElementById('win-time').textContent = String(elapsed).padStart(3,'0');
+      document.getElementById('win-overlay').classList.add('show');
+    }, 800);
+  }
+}
+
+/* ═══════════════════════════════════════════
+   TIMER
+═══════════════════════════════════════════ */
+function startTimer() {
+  elapsed = 0;
+  timerInterval = setInterval(() => {
+    elapsed = Math.min(elapsed + 1, 999);
+    updateTimer(elapsed);
+  }, 1000);
+}
+function updateTimer(val) {
+  document.getElementById('timer-display').textContent = String(val).padStart(3,'0');
+}
+
+/* ── BOOT ── */
+newGame();
+</script>
+</body>
+</html>

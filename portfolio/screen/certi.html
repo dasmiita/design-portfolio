@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Certifications & Achievements — Minesweeper</title>
+<!-- Segoe UI — closest web-safe match to actual Win7 font -->
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════
+   WIN7 SYSTEM FONT STACK — Segoe UI is installed on most
+   Windows machines; fallback chain mirrors Win7 exactly
+═══════════════════════════════════════════════════════ */
+:root {
+  --sys: "Segoe UI", "Noto Sans", Tahoma, Geneva, Verdana, sans-serif;
+  --mono: "Lucida Console", "Share Tech Mono", monospace;
+
+  /* Win7 Aero palette */
+  --aero-top:    #c8daf5;
+  --aero-mid:    #a8c4e8;
+  --aero-bot:    #7aa3d4;
+  --aero-border: #4a7ab5;
+  --aero-glass:  rgba(180,210,245,0.82);
+  --aero-inner:  rgba(240,248,255,0.6);
+
+  /* Classic Win surface */
+  --c0:    #d4d0c8;
+  --raised: #ffffff;
+  --shadow: #808080;
+  --dark:   #404040;
+
+  --cell: 50px;
+  --gap:  2px;
+  --cols: 12;
+  --rows: 12;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  overflow: hidden;
+  font-family: var(--sys);
+  font-size: 13px;
+  background: #0a0a12;
+}
+
+/* ── DESKTOP BG ── */
+#bg{
+    position:fixed;
+    inset:0;
+    background-image:url("../bg4.jpg");
+    background-size:cover;
+    background-position:center;
+    background-repeat:no-repeat;
+}
+#bg::after {
+  content:''; position:absolute; inset:0;
+  background-image:
+    radial-gradient(circle at 25% 35%, rgba(100,160,220,0.07) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(60,120,180,0.05) 0%, transparent 45%);
+}
+
+/* ══════════════════════════════════════════
+   WIN7 AERO WINDOW CHROME
+══════════════════════════════════════════ */
+.win7-window {
+  border-radius: 8px 8px 6px 6px;
+  overflow: hidden;
+  /* layered Aero glass border */
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.7),
+    0 0 0 2px var(--aero-border),
+    0 0 0 3px rgba(255,255,255,0.25),
+    0 30px 80px rgba(0,0,0,0.75);
+}
+
+/* Win7 titlebar — that iconic blue gradient with glass sheen */
+.win7-titlebar {
+  height: 30px;
+  background: linear-gradient(180deg,
+    #bad3f0 0%,
+    #9dbde8 28%,
+    #7aa3d4 55%,
+    #8cb5e0 80%,
+    #aacbee 100%
+  );
+  border-bottom: 1px solid rgba(70,110,170,0.6);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 6px 0 10px;
+  /* top glass sheen */
+  position: relative;
+}
+.win7-titlebar::before {
+  content:''; position:absolute; inset:0 0 50% 0;
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.55) 0%,
+    rgba(255,255,255,0.15) 100%
+  );
+  border-radius: 8px 8px 0 0;
+  pointer-events: none;
+}
+
+.titlebar-left { display:flex; align-items:center; gap:7px; position:relative; z-index:1; }
+.titlebar-icon { font-size:15px; }
+.titlebar-text {
+  font-family: var(--sys);
+  font-size: 12px; font-weight: 400;
+  color: #1a3a5c;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.7);
+  letter-spacing: 0.1px;
+}
+
+/* Win7 window control buttons */
+.win7-btns { display:flex; gap:1px; position:relative; z-index:1; }
+.w7btn {
+  width: 26px; height: 20px;
+  border: 1px solid rgba(100,140,190,0.5);
+  border-radius: 4px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(180,210,240,0.3) 100%);
+  cursor: pointer;
+  font-size: 10px; font-weight: 700;
+  color: #1a3a5c;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.1s;
+  font-family: "Marlett", "Webdings", var(--sys);
+}
+.w7btn:hover { background: linear-gradient(180deg, rgba(255,220,180,0.8) 0%, rgba(240,160,80,0.5) 100%); border-color: rgba(200,120,40,0.7); }
+.w7btn.close:hover { background: linear-gradient(180deg, #f08080 0%, #d04040 100%); border-color: #a03030; color: white; }
+.w7btn:active { background: linear-gradient(180deg, rgba(200,180,150,0.8) 0%, rgba(220,140,60,0.6) 100%); }
+
+/* Win7 menu bar */
+.win7-menu {
+  height: 22px;
+  background: linear-gradient(180deg, #dce8f5 0%, #c8daef 100%);
+  border-bottom: 1px solid rgba(100,140,190,0.4);
+  display: flex; align-items: center;
+  padding: 0 8px; gap: 2px;
+}
+.menu-item {
+  font-family: var(--sys);
+  font-size: 11px; padding: 2px 8px; cursor: pointer;
+  color: #1a1a1a; border-radius: 3px;
+}
+.menu-item:hover { background: rgba(80,120,180,0.25); }
+
+/* Win7 status / info bar at bottom */
+.win7-statusbar {
+  height: 22px;
+  background: linear-gradient(180deg, #d0e0f0 0%, #bdd0e8 100%);
+  border-top: 1px solid rgba(100,140,190,0.35);
+  display: flex; align-items: center;
+  padding: 0 10px; gap: 10px;
+}
+.status-text {
+  font-family: var(--sys);
+  font-size: 10px; color: #1a3050;
+}
+.status-sep { width:1px; height:14px; background: rgba(80,120,180,0.3); }
+
+/* ══════════════════════════════════════════
+   MAIN MINESWEEPER WINDOW
+══════════════════════════════════════════ */
+#window {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  animation: popup 0.9s cubic-bezier(0.22,1,0.36,1) forwards;
+  width: fit-content;
+}
+
+/* Win7 content area */
+.win7-body {
+  background: linear-gradient(180deg, #e8f0f8 0%, #d8e8f5 100%);
+  padding: 8px;
+}
+
+/* ── MINESWEEPER TOP BAR ── */
+#topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  background: linear-gradient(180deg, #c8daef 0%, #b8cce3 100%);
+  border: 1px solid rgba(100,140,190,0.5);
+  border-radius: 4px;
+  padding: 6px 14px; margin-bottom: 7px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+}
+.counter {
+  font-family: var(--mono);
+  font-size: 26px; font-weight: 700;
+  color: #ff2020;
+  background: #0a0a0a;
+  padding: 3px 8px; min-width: 58px; text-align: center;
+  border-radius: 3px;
+  border: 1px solid #222;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+  letter-spacing: 3px;
+}
+
+
+/* ── GRID ── */
+#grid {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), var(--cell));
+  gap: var(--gap);
+  background: rgba(80,120,170,0.25);
+  border: 2px solid rgba(80,120,170,0.4);
+  border-radius: 4px;
+  padding: var(--gap);
+}
+
+/* ── CELL ── */
+.cell {
+  width: var(--cell); height: var(--cell);
+  background: linear-gradient(145deg, #dde8f4 0%, #c5d5e8 100%);
+  border: 1px solid rgba(100,140,190,0.5);
+  border-radius: 3px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.7),
+    0 1px 3px rgba(0,0,0,0.1);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  user-select: none;
+  font-family: var(--mono);
+  font-size: 16px; font-weight: 900;
+  transition: background 0.08s, box-shadow 0.08s;
+}
+.cell:hover:not(.revealed):not(.flagged) {
+  background: linear-gradient(145deg, #eaf2fc 0%, #d5e5f5 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 2px 6px rgba(80,130,190,0.2);
+}
+.cell:active:not(.revealed):not(.flagged) {
+  background: linear-gradient(145deg, #c5d5e8 0%, #b5c8de 100%);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+}
+.cell.revealed {
+  background: linear-gradient(145deg, #c8d8ec 0%, #b8cce0 100%);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.12);
+  border-color: rgba(80,120,170,0.3);
+  cursor: default;
+}
+
+/* number colours — classic minesweeper */
+.n1 { color: #0000e0; }
+.n2 { color: #006000; }
+.n3 { color: #c00000; }
+.n4 { color: #000070; }
+.n5 { color: #700000; }
+.n6 { color: #006060; }
+.n7 { color: #000000; }
+.n8 { color: #606060; }
+
+/* ── BOMB CELL (cert/achievement) ── */
+.cell.bomb.revealed {
+  background: linear-gradient(135deg, #fff8e0 0%, #ffeea0 100%);
+  border-color: rgba(180,140,20,0.6);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 0 8px rgba(220,180,0,0.3);
+  cursor: pointer;
+}
+.cell.bomb.revealed:hover {
+  background: linear-gradient(135deg, #fffde8 0%, #fff3b8 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 0 14px rgba(220,180,0,0.5);
+}
+
+/* photo placeholder inside cell */
+.cell-photo {
+  width: 38px; height: 38px;
+  border-radius: 3px;
+  overflow: hidden;
+  border: 1px solid rgba(180,140,20,0.4);
+  flex-shrink: 0;
+  position: relative;
+}
+.cell-photo img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.cell-photo .photo-fallback {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  background: linear-gradient(135deg, #f0e8d0, #e8d8a8);
+}
+
+/* ── FLAG ── */
+.cell.flagged {
+  background: linear-gradient(145deg, #dde8f4 0%, #c5d5e8 100%);
+}
+.flag-mark { font-size: 20px; pointer-events: none; }
+
+/* pulsing glow on found bombs */
+@keyframes found-pulse {
+  0%,100% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 0 6px rgba(220,180,0,0.3); }
+  50%      { box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 0 16px rgba(220,180,0,0.7); }
+}
+.cell.bomb.revealed { animation: found-pulse 2.5s ease-in-out infinite; }
+
+/* ══════════════════════════════════════════
+   "JUMP TO THE FUN" BUTTON (beside window)
+══════════════════════════════════════════ */
+#jump-btn-wrap {
+  position: relative; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  /* will be repositioned by JS after window renders */
+  z-index: 50;
+  opacity: 0;
+  animation: fadein 0.6s ease 1.2s forwards;
+}
+@keyframes fadein { to { opacity: 1; } }
+
+#jump-btn {
+  font-family: var(--sys);
+  font-size: 18px; font-weight: 600;
+  margin-left: 335px;
+  margin-top: 600px;
+  color: #1a3a5c;
+  background: linear-gradient(180deg,
+    rgba(220,235,255,0.95) 0%,
+    rgba(180,210,245,0.95) 48%,
+    rgba(140,185,235,0.95) 52%,
+    rgba(170,205,245,0.95) 100%
+  );
+  border: 1px solid rgba(80,120,180,0.7);
+  border-radius: 4px;
+  padding: 17px 26px;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.8),
+    0 2px 6px rgba(0,0,0,0.25),
+    0 0 0 1px rgba(255,255,255,0.4);
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+  transition: all 0.15s;
+}
+#jump-btn:hover {
+  background: linear-gradient(180deg,
+    rgba(240,248,255,0.98) 0%,
+    rgba(200,225,255,0.98) 48%,
+    rgba(160,200,245,0.98) 52%,
+    rgba(190,218,250,0.98) 100%
+  );
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 4px 12px rgba(80,130,190,0.35), 0 0 0 1px rgba(255,255,255,0.5);
+}
+#jump-btn:active { box-shadow: inset 0 2px 4px rgba(0,0,0,0.15); }
+
+/* ══════════════════════════════════════════
+   ALL-IN-ONE "FUN" DIALOG
+══════════════════════════════════════════ */
+#fun-overlay {
+  display: none; position: fixed; inset: 0; z-index: 300;
+  align-items: center; justify-content: center;
+  background: rgba(0,0,0,0);
+  transition: background 0.3s;
+}
+#fun-overlay.show { display: flex; background: rgba(0,0,0,0.55); }
+
+#fun-dialog {
+  width: 860px; max-height: 88vh;
+  display: flex; flex-direction: column;
+  transform: scale(0.85) translateY(30px); opacity: 0;
+  transition: transform 0.35s cubic-bezier(0.22,1,0.36,1), opacity 0.3s ease;
+}
+#fun-overlay.show #fun-dialog { transform: scale(1) translateY(0); opacity: 1; }
+
+.fun-body {
+  flex: 1; overflow-y: auto;
+  background: linear-gradient(180deg, #e8f0f8 0%, #dce8f5 100%);
+  padding: 20px 22px 24px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--aero-bot) transparent;
+}
+
+/* section heading inside dialog */
+.fun-section-head {
+  display: flex; align-items: center; gap: 10px;
+  margin: 0 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(80,120,180,0.25);
+}
+.fun-section-head .sec-icon { font-size: 18px; }
+.fun-section-head h2 {
+  font-family: var(--sys);
+  font-size: 14px; font-weight: 600;
+  color: #1a3a6a;
+}
+.fun-section-head .sec-count {
+  font-family: var(--mono);
+  font-size: 10px; color: #fff;
+  background: #3a70b0;
+  padding: 1px 7px; border-radius: 10px;
+}
+
+/* cards grid */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+/* individual card */
+.fun-card {
+  background: linear-gradient(180deg, #f4f9ff 0%, #e8f2ff 100%);
+  border: 1px solid rgba(100,140,200,0.4);
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.8);
+  transition: box-shadow 0.15s, transform 0.15s;
+}
+.fun-card:hover {
+  box-shadow: 0 6px 18px rgba(60,110,180,0.2), inset 0 1px 0 rgba(255,255,255,0.9);
+  transform: translateY(-2px);
+}
+
+/* card photo area */
+.fun-card-photo {
+  width: 100%; height: 90px;
+  overflow: hidden; position: relative;
+  background: linear-gradient(135deg, #d8e8f8, #c0d4ec);
+  border-bottom: 1px solid rgba(100,140,200,0.25);
+}
+.fun-card-photo img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.fun-card-photo .photo-fallback {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 40px;
+}
+.fun-card-photo .type-badge {
+  position: absolute; top: 6px; right: 6px;
+  font-family: var(--sys);
+  font-size: 9px; font-weight: 700;
+  color: white; padding: 2px 7px;
+  border-radius: 3px; letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.type-cert  { background: rgba(30,80,160,0.85); }
+.type-achv  { background: rgba(140,80,0,0.85); }
+
+/* card text area */
+.fun-card-info { padding: 10px 12px 12px; }
+.fun-card-name {
+  font-family: var(--sys);
+  font-size: 12px; font-weight: 700;
+  color: #0d2a50; line-height: 1.3;
+  margin-bottom: 3px;
+}
+.fun-card-issuer {
+  font-family: var(--sys);
+  font-size: 10px; color: #5570a0; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.6px;
+  margin-bottom: 6px;
+}
+.fun-card-desc {
+  font-family: var(--sys);
+  font-size: 10.5px; color: #334;
+  line-height: 1.55; margin-bottom: 8px;
+}
+.chip-row { display: flex; flex-wrap: wrap; gap: 4px; }
+.chip {
+  font-family: var(--sys);
+  font-size: 9px; font-weight: 700;
+  color: #1a3a6a;
+  background: linear-gradient(180deg, #e0eaff, #ccdcf8);
+  border: 1px solid rgba(80,120,190,0.4);
+  padding: 1px 7px; border-radius: 3px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+}
+.chip.gold {
+  color: #5a3800;
+  background: linear-gradient(180deg, #fff3c8, #ffe080);
+  border-color: rgba(160,120,0,0.4);
+}
+.fun-card-year {
+  font-family: var(--mono);
+  font-size: 9px; color: #fff;
+  background: #2a5090;
+  padding: 1px 7px; border-radius: 2px;
+  display: inline-block; margin-top: 6px;
+}
+
+/* ══════════════════════════════════════════
+   SINGLE CERT POPUP MODAL
+══════════════════════════════════════════ */
+#cert-modal {
+  display: none; position: fixed; inset: 0; z-index: 400;
+  align-items: center; justify-content: center;
+  background: rgba(0,0,0,0);
+  transition: background 0.25s;
+}
+#cert-modal.show { display: flex; background: rgba(0,0,0,0.6); }
+
+#cert-card {
+  width: 460px;
+  transform: scale(0.75) rotate(-3deg); opacity: 0;
+  transition: transform 0.38s cubic-bezier(0.22,1,0.36,1), opacity 0.28s ease;
+}
+#cert-modal.show #cert-card { transform: scale(1) rotate(0); opacity: 1; }
+
+.cert-card-body {
+  background: linear-gradient(180deg, #e8f0f8 0%, #dce8f5 100%);
+  padding: 20px 24px 24px;
+}
+.cert-badge-row { display:flex; align-items:center; gap:16px; margin-bottom:16px; }
+.cert-photo {
+  width: 72px; height: 72px;
+  border-radius: 5px; overflow: hidden; flex-shrink: 0;
+  border: 2px solid rgba(80,120,190,0.4);
+  background: linear-gradient(135deg, #d8e8f8, #c0d4ec);
+  position: relative;
+}
+.cert-photo img { width:100%; height:100%; object-fit:cover; }
+.cert-photo .photo-fallback { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:36px; }
+
+.cert-meta h2 {
+  font-family: var(--sys);
+  font-size: 14px; font-weight: 700; color: #0d2a50;
+  line-height: 1.3; margin-bottom: 5px;
+}
+.cert-issuer {
+  font-family: var(--sys);
+  font-size: 10px; font-weight: 700; color: #5570a0;
+  text-transform: uppercase; letter-spacing: 0.8px;
+}
+.cert-year-badge {
+  font-family: var(--mono);
+  font-size: 11px; color: #fff;
+  background: #2a5090; padding: 2px 9px;
+  display: inline-block; margin-top: 6px; border-radius: 2px;
+}
+.cert-desc-area {
+  font-family: var(--sys);
+  font-size: 11.5px; color: #223;
+  line-height: 1.65;
+  border-top: 1px solid rgba(80,120,180,0.2);
+  padding-top: 12px; margin-bottom: 12px;
+}
+.cert-chips-row { display: flex; flex-wrap: wrap; gap: 5px; }
+
+/* ── WIN OVERLAY ── */
+#win-overlay {
+  display: none; position: fixed; inset: 0; z-index: 300;
+  align-items: center; justify-content: center;
+  background: rgba(0,0,0,0); transition: background 0.4s;
+}
+#win-overlay.show { display: flex; background: rgba(0,0,0,0.7); }
+#win-box {
+  width: 380px;
+  transform: scale(0.5); opacity: 0;
+  transition: transform 0.45s cubic-bezier(0.22,1,0.36,1) 0.2s, opacity 0.35s ease 0.2s;
+}
+#win-overlay.show #win-box { transform: scale(1); opacity: 1; }
+.win-box-body { background: linear-gradient(180deg,#e8f0f8,#dce8f5); padding: 24px 28px 28px; text-align:center; }
+.win-box-body .trophy { font-size: 50px; margin-bottom: 10px; }
+.win-box-body h2 { font-family:var(--sys); font-size:16px; font-weight:700; color:#0d2a50; margin-bottom:6px; }
+.win-box-body p  { font-family:var(--sys); font-size:11px; color:#445; line-height:1.6; margin-bottom:16px; }
+#win-time { font-family:var(--mono); font-size:28px; color:#ff2020; background:#000; padding:4px 14px; display:inline-block; margin-bottom:16px; border-radius:3px; }
+.win-action-btn {
+  font-family: var(--sys); font-size: 12px; font-weight:600;
+  color: #1a3a5c; padding: 6px 20px; border-radius: 4px; cursor: pointer;
+  background: linear-gradient(180deg, rgba(220,235,255,0.95) 0%, rgba(140,185,235,0.95) 100%);
+  border: 1px solid rgba(80,120,180,0.7);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+  margin: 0 4px;
+}
+.win-action-btn:hover { background: linear-gradient(180deg, rgba(240,248,255,0.98) 0%, rgba(160,200,245,0.98) 100%); }
+
+/* ── ANIMATION ── */
+@keyframes popup {
+  0%   { opacity:0; transform:translate(-50%,-50%) scale(0) rotate(-5deg); }
+  70%  { opacity:1; transform:translate(-50%,-50%) scale(1.02) rotate(0.5deg); }
+  100% { opacity:1; transform:translate(-50%,-50%) scale(1) rotate(0deg); }
+}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+
+<!-- ══ MAIN MINESWEEPER WINDOW ══ -->
+<div id="window" class="win7-window">
+
+  <div class="win7-titlebar">
+    <div class="titlebar-left">
+      <span class="titlebar-icon">💣</span>
+      <span class="titlebar-text">Minesweeper — Certifications &amp; Achievements</span>
+    </div>
+    <div class="win7-btns">
+      <button class="w7btn">─</button>
+      <button class="w7btn">□</button>
+      <button class="w7btn close" onclick="newGame()">✕</button>
+    </div>
+  </div>
+
+  <div class="win7-menu">
+    <span class="menu-item">Game</span>
+    <span class="menu-item">Help</span>
+  </div>
+
+  <div class="win7-body">
+    <div id="topbar">
+      <div class="counter" id="cert-counter">012</div>
+      <div class="counter" id="timer-display">000</div>
+    </div>
+    <div id="grid"></div>
+  </div>
+
+  <div class="win7-statusbar">
+    <span class="status-text" id="status-text">Left-click to reveal &nbsp;·&nbsp; Right-click to flag</span>
+    <div class="status-sep"></div>
+    <span class="status-text" id="found-text">Found: 0 / 12</span>
+  </div>
+</div>
+
+<!-- ══ JUMP TO THE FUN BUTTON ══ -->
+<div id="jump-btn-wrap">
+  <button id="jump-btn" onclick="openFunDialog()">⭐ Jump to the Fun</button>
+</div>
+
+<!-- ══ CERT SINGLE POPUP ══ -->
+<div id="cert-modal">
+  <div id="cert-card" class="win7-window">
+    <div class="win7-titlebar">
+      <div class="titlebar-left">
+        <span class="titlebar-icon">🏅</span>
+        <span class="titlebar-text" id="cert-card-title">Details</span>
+      </div>
+      <div class="win7-btns">
+        <button class="w7btn close" onclick="closeCertModal()">✕</button>
+      </div>
+    </div>
+    <div class="cert-card-body">
+      <div class="cert-badge-row">
+        <div class="cert-photo">
+          <img id="cert-photo-img" src="" alt="" onerror="this.style.display='none'">
+          <div class="photo-fallback" id="cert-photo-fallback"></div>
+        </div>
+        <div class="cert-meta">
+          <h2 id="cert-name"></h2>
+          <div class="cert-issuer" id="cert-issuer"></div>
+          <div class="cert-year-badge" id="cert-year"></div>
+        </div>
+      </div>
+      <div class="cert-desc-area" id="cert-desc"></div>
+      <div class="cert-chips-row" id="cert-chips"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ALL-IN-ONE FUN DIALOG ══ -->
+<div id="fun-overlay">
+  <div id="fun-dialog" class="win7-window">
+    <div class="win7-titlebar">
+      <div class="titlebar-left">
+        <span class="titlebar-icon">⭐</span>
+        <span class="titlebar-text">All Certifications &amp; Achievements</span>
+      </div>
+      <div class="win7-btns">
+        <button class="w7btn close" onclick="closeFunDialog()">✕</button>
+      </div>
+    </div>
+    <div class="win7-menu">
+      <span class="menu-item">View</span>
+      <span class="menu-item">Filter</span>
+    </div>
+    <div class="fun-body" id="fun-body"></div>
+    <div class="win7-statusbar">
+      <span class="status-text">Click any card to view details</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WIN OVERLAY ══ -->
+<div id="win-overlay">
+  <div id="win-box" class="win7-window">
+    <div class="win7-titlebar">
+      <div class="titlebar-left">
+        <span class="titlebar-icon">🏆</span>
+        <span class="titlebar-text">Congratulations!</span>
+      </div>
+      <div class="win7-btns">
+        <button class="w7btn close" onclick="document.getElementById('win-overlay').classList.remove('show')">✕</button>
+      </div>
+    </div>
+    <div class="win-box-body">
+      <div class="trophy">🏆</div>
+      <h2>All 12 Found!</h2>
+      <p>You uncovered every certification and achievement.<br>Time taken:</p>
+      <div id="win-time">000</div><br>
+      <button class="win-action-btn" onclick="newGame()">Play Again</button>
+      <button class="win-action-btn" onclick="openFunDialog()">View All</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   DATA — edit this section with your real info
+   img: path to your photo/badge (e.g. "certs/aws.jpg")
+   emoji: shown if img fails to load
+   type: "cert" or "achv"
+══════════════════════════════════════════ */
+const ITEMS = [
+  /* ── CERTIFICATIONS ── */
+  {
+    type: 'cert',
+    img: 'certs/aws.jpg',
+    emoji: '☁️',
+    name: 'AWS Certified Solutions Architect',
+    issuer: 'Amazon Web Services',
+    year: '2024',
+    desc: 'Validates expertise in designing and deploying scalable, highly available systems on AWS. Covers EC2, S3, RDS, VPC, and cloud architecture patterns.',
+    chips: ['AWS', 'Cloud', 'EC2', 'S3', 'VPC']
+  },
+  {
+    type: 'cert',
+    img: 'certs/firebase.jpg',
+    emoji: '🔥',
+    name: 'Firebase Developer Certification',
+    issuer: 'Google',
+    year: '2023',
+    desc: 'Demonstrates proficiency in building real-time applications using Firestore, Firebase Auth, Cloud Functions, and Hosting.',
+    chips: ['Firebase', 'NoSQL', 'Auth', 'Cloud Functions']
+  },
+  {
+    type: 'cert',
+    img: 'certs/meta.jpg',
+    emoji: '🌐',
+    name: 'Meta Front-End Developer',
+    issuer: 'Meta / Coursera',
+    year: '2023',
+    desc: 'Professional certificate covering React, UI/UX principles, responsive design, and modern JavaScript development workflows.',
+    chips: ['React', 'JS', 'HTML', 'CSS', 'UI/UX']
+  },
+  {
+    type: 'cert',
+    img: 'certs/oracle-sql.jpg',
+    emoji: '🗄️',
+    name: 'Oracle SQL Certified Associate',
+    issuer: 'Oracle',
+    year: '2022',
+    desc: 'Validates knowledge of relational database design, SQL query optimization, joins, subqueries, and database administration fundamentals.',
+    chips: ['SQL', 'Oracle DB', 'Database', 'Queries']
+  },
+  {
+    type: 'cert',
+    img: 'certs/java.jpg',
+    emoji: '☕',
+    name: 'Java SE 11 Developer',
+    issuer: 'Oracle',
+    year: '2023',
+    desc: 'Demonstrates core Java skills including OOP, collections, streams, exception handling, and the Java platform module system.',
+    chips: ['Java', 'OOP', 'Streams', 'SE 11']
+  },
+  {
+    type: 'cert',
+    img: 'certs/ux.jpg',
+    emoji: '🎨',
+    name: 'Google UX Design Certificate',
+    issuer: 'Google / Coursera',
+    year: '2024',
+    desc: 'Covers the full UX design process — empathize, define, ideate, prototype, and test — along with Figma, wireframing, and accessibility.',
+    chips: ['UX', 'Figma', 'Prototyping', 'Research']
+  },
+
+  /* ── ACHIEVEMENTS ── */
+  {
+    type: 'achv',
+    img: 'achv/hackathon.jpg',
+    emoji: '🥇',
+    name: '1st Place — National Hackathon',
+    issuer: 'TechFest 2024',
+    year: '2024',
+    desc: 'Won first place out of 240 teams for building a real-time disaster-response coordination app using Firebase and React.',
+    chips: ['Hackathon', '1st Place', 'React', 'Firebase']
+  },
+  {
+    type: 'achv',
+    img: 'achv/opensource.jpg',
+    emoji: '🌍',
+    name: 'Open Source Contributor',
+    issuer: 'GitHub',
+    year: '2023',
+    desc: 'Merged 12 pull requests into active open-source repositories, contributing UI components and bug fixes used by thousands.',
+    chips: ['Open Source', 'GitHub', 'Contributions']
+  },
+  {
+    type: 'achv',
+    img: 'achv/dean.jpg',
+    emoji: '🎓',
+    name: "Dean's List — 3 Consecutive Semesters",
+    issuer: 'University',
+    year: '2022–24',
+    desc: "Maintained a GPA above 3.8 across three semesters, earning Dean's List recognition for academic excellence.",
+    chips: ["Dean's List", 'GPA 3.8+', 'Excellence']
+  },
+  {
+    type: 'achv',
+    img: 'achv/freelance.jpg',
+    emoji: '💼',
+    name: '20+ Freelance Projects Delivered',
+    issuer: 'Self / Clients',
+    year: '2022–24',
+    desc: 'Completed 20+ client projects spanning e-commerce sites, dashboards, and mobile-responsive portfolios with 5-star reviews.',
+    chips: ['Freelance', 'Clients', '5★ Reviews']
+  },
+  {
+    type: 'achv',
+    img: 'achv/speaker.jpg',
+    emoji: '🎤',
+    name: 'Tech Talk Speaker',
+    issuer: 'Developer Meetup',
+    year: '2024',
+    desc: 'Presented a talk on "Building Real-Time Apps with Firebase" to an audience of 150+ developers at a regional meetup.',
+    chips: ['Speaking', 'Firebase', 'Community']
+  },
+  {
+    type: 'achv',
+    img: 'achv/internship.jpg',
+    emoji: '🏢',
+    name: 'Best Intern Award',
+    issuer: 'Tech Company',
+    year: '2023',
+    desc: 'Awarded Best Intern out of 18 interns for delivering a full-stack internal tool 2 weeks ahead of schedule.',
+    chips: ['Internship', 'Best Intern', 'Full-Stack']
+  }
+];
+
+/* ══════════════════════════════════════════
+   GAME CONFIG
+══════════════════════════════════════════ */
+const ROWS = 12, COLS = 12, TOTAL = ITEMS.length; // 12
+let grid = [], bombPos = [], revealed = [], flagged = [];
+let firstClick = true, gameOver = false, gameWon = false;
+let timerInterval = null, elapsed = 0, foundCount = 0;
+
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
+function newGame() {
+  clearInterval(timerInterval);
+  elapsed = 0; firstClick = true; gameOver = false; gameWon = false; foundCount = 0;
+  updateTimer(0);
+  document.getElementById('cert-counter').textContent = String(TOTAL).padStart(3,'0');
+  document.getElementById('found-text').textContent = `Found: 0 / ${TOTAL}`;
+  document.getElementById('status-text').textContent = 'Left-click to reveal · Right-click to flag';
+  document.getElementById('win-overlay').classList.remove('show');
+
+  grid     = Array.from({length:ROWS}, () => Array(COLS).fill(0));
+  revealed = Array.from({length:ROWS}, () => Array(COLS).fill(false));
+  flagged  = Array.from({length:ROWS}, () => Array(COLS).fill(false));
+  bombPos  = [];
+  renderGrid();
+  positionJumpBtn();
+}
+
+function placeBombs(exR, exC) {
+  const pos = [];
+  while(pos.length < TOTAL) {
+    const r = Math.floor(Math.random() * ROWS);
+    const c = Math.floor(Math.random() * COLS);
+    if(Math.abs(r-exR) <= 1 && Math.abs(c-exC) <= 1) continue;
+    if(pos.some(p => p[0]===r && p[1]===c)) continue;
+    pos.push([r,c]);
+  }
+  bombPos = pos;
+
+  grid = Array.from({length:ROWS}, () => Array(COLS).fill(0));
+  for(const [r,c] of pos) grid[r][c] = -1;
+
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) {
+    if(grid[r][c] === -1) continue;
+    let n = 0;
+    for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++) {
+      const nr=r+dr, nc=c+dc;
+      if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&grid[nr][nc]===-1) n++;
+    }
+    grid[r][c] = n;
+  }
+}
+
+/* ══════════════════════════════════════════
+   RENDER
+══════════════════════════════════════════ */
+function renderGrid() {
+  const el = document.getElementById('grid');
+  el.style.setProperty('--cols', COLS);
+  el.style.setProperty('--rows', ROWS);
+  el.innerHTML = '';
+
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+
+    if(revealed[r][c]) {
+      cell.classList.add('revealed');
+      if(grid[r][c] === -1) {
+        cell.classList.add('bomb');
+        const idx = getBombIndex(r,c);
+        const item = ITEMS[idx];
+
+        // photo with emoji fallback
+        const photoWrap = document.createElement('div');
+        photoWrap.className = 'cell-photo';
+        if(item) {
+          const img = document.createElement('img');
+          img.src = item.img || '';
+          img.alt = item.name || '';
+          img.onerror = () => { img.style.display='none'; };
+          const fb = document.createElement('div');
+          fb.className = 'photo-fallback';
+          fb.textContent = item ? item.emoji : '🏅';
+          photoWrap.appendChild(img);
+          photoWrap.appendChild(fb);
+        }
+        cell.appendChild(photoWrap);
+        cell.addEventListener('click', () => openCertModal(r,c));
+        cell.style.cursor = 'pointer';
+      } else if(grid[r][c] > 0) {
+        cell.classList.add('n'+grid[r][c]);
+        cell.textContent = grid[r][c];
+      }
+    } else if(flagged[r][c]) {
+      cell.classList.add('flagged');
+      const f = document.createElement('span');
+      f.className = 'flag-mark';
+      f.textContent = '🚩';
+      cell.appendChild(f);
+      cell.addEventListener('contextmenu', e => { e.preventDefault(); handleRight(r,c); });
+    } else {
+      cell.addEventListener('click', () => handleClick(r,c));
+      cell.addEventListener('contextmenu', e => { e.preventDefault(); handleRight(r,c); });
+    }
+
+    el.appendChild(cell);
+  }
+}
+
+/* ══════════════════════════════════════════
+   INTERACTION
+══════════════════════════════════════════ */
+function handleClick(r, c) {
+  if(gameOver || gameWon || revealed[r][c] || flagged[r][c]) return;
+
+  if(firstClick) {
+    firstClick = false;
+    placeBombs(r, c);
+    startTimer();
+    document.getElementById('status-text').textContent = 'Hunt them all! Right-click to flag suspicious cells';
+  }
+
+  if(grid[r][c] === -1) {
+    revealed[r][c] = true; flagged[r][c] = false;
+    foundCount++;
+    document.getElementById('found-text').textContent = `Found: ${foundCount} / ${TOTAL}`;
+    document.getElementById('cert-counter').textContent = String(TOTAL - foundCount).padStart(3,'0');
+    renderGrid();
+    setTimeout(() => openCertModal(r, c), 300);
+    checkWin();
+  } else {
+    floodReveal(r, c);
+    renderGrid();
+  }
+}
+
+function handleRight(r, c) {
+  if(gameOver || gameWon || revealed[r][c]) return;
+  flagged[r][c] = !flagged[r][c];
+  renderGrid();
+}
+
+function floodReveal(r, c) {
+  if(r<0||r>=ROWS||c<0||c>=COLS) return;
+  if(revealed[r][c] || flagged[r][c] || grid[r][c]===-1) return;
+  revealed[r][c] = true;
+  if(grid[r][c] === 0)
+    for(let dr=-1;dr<=1;dr++) for(let dc=-1;dc<=1;dc++) {
+      if(dr===0&&dc===0) continue;
+      floodReveal(r+dr, c+dc);
+    }
+}
+
+function getBombIndex(r, c) {
+  return bombPos.findIndex(p => p[0]===r && p[1]===c);
+}
+
+/* ══════════════════════════════════════════
+   SINGLE ITEM MODAL
+══════════════════════════════════════════ */
+function openCertModal(r, c) {
+  const idx = getBombIndex(r, c);
+  if(idx === -1) return;
+  const item = ITEMS[idx];
+
+  const img = document.getElementById('cert-photo-img');
+  img.src = item.img || '';
+  img.style.display = '';
+  document.getElementById('cert-photo-fallback').textContent = item.emoji;
+  document.getElementById('cert-card-title').textContent = item.type === 'cert' ? `Certificate — ${item.issuer}` : `Achievement — ${item.issuer}`;
+  document.getElementById('cert-name').textContent = item.name;
+  document.getElementById('cert-issuer').textContent = item.issuer;
+  document.getElementById('cert-year').textContent = item.year;
+  document.getElementById('cert-desc').textContent = item.desc;
+
+  const chips = document.getElementById('cert-chips');
+  chips.innerHTML = '';
+  item.chips.forEach(s => {
+    const ch = document.createElement('span');
+    ch.className = 'chip' + (item.type === 'achv' ? ' gold' : '');
+    ch.textContent = s;
+    chips.appendChild(ch);
+  });
+
+  document.getElementById('cert-modal').classList.add('show');
+}
+
+function closeCertModal() { document.getElementById('cert-modal').classList.remove('show'); }
+document.getElementById('cert-modal').addEventListener('click', function(e) { if(e.target===this) closeCertModal(); });
+
+/* ══════════════════════════════════════════
+   FUN DIALOG
+══════════════════════════════════════════ */
+function openFunDialog() {
+  const body = document.getElementById('fun-body');
+  body.innerHTML = '';
+
+  const certs  = ITEMS.filter(i => i.type === 'cert');
+  const achvs  = ITEMS.filter(i => i.type === 'achv');
+
+  body.appendChild(buildSection('📜 Certifications', certs, 'cert'));
+
+  const sep = document.createElement('div');
+  sep.style.cssText = 'border-top:1px solid rgba(80,120,180,0.2); margin:4px 0 20px;';
+  body.appendChild(sep);
+
+  body.appendChild(buildSection('🏆 Achievements', achvs, 'achv'));
+
+  document.getElementById('fun-overlay').classList.add('show');
+}
+
+function buildSection(title, items, type) {
+  const wrap = document.createElement('div');
+
+  const head = document.createElement('div');
+  head.className = 'fun-section-head';
+  const [ico, ...rest] = title.split(' ');
+  head.innerHTML = `
+    <span class="sec-icon">${ico}</span>
+    <h2>${rest.join(' ')}</h2>
+    <span class="sec-count">${items.length}</span>
+  `;
+  wrap.appendChild(head);
+
+  const grid = document.createElement('div');
+  grid.className = 'cards-grid';
+
+  items.forEach((item, i) => {
+    const card = document.createElement('div');
+    card.className = 'fun-card';
+    card.innerHTML = `
+      <div class="fun-card-photo">
+        <img src="${item.img||''}" alt="${item.name}" onerror="this.style.display='none'">
+        <div class="photo-fallback">${item.emoji}</div>
+        <span class="type-badge type-${type}">${type === 'cert' ? 'Cert' : 'Achievement'}</span>
+      </div>
+      <div class="fun-card-info">
+        <div class="fun-card-name">${item.name}</div>
+        <div class="fun-card-issuer">${item.issuer}</div>
+        <div class="fun-card-desc">${item.desc}</div>
+        <div class="chip-row">${item.chips.map(s=>`<span class="chip${type==='achv'?' gold':''}">${s}</span>`).join('')}</div>
+        <div class="fun-card-year">${item.year}</div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  wrap.appendChild(grid);
+  return wrap;
+}
+
+function closeFunDialog() { document.getElementById('fun-overlay').classList.remove('show'); }
+document.getElementById('fun-overlay').addEventListener('click', function(e) { if(e.target===this) closeFunDialog(); });
+
+/* ══════════════════════════════════════════
+   WIN
+══════════════════════════════════════════ */
+function checkWin() {
+  if(foundCount === TOTAL) {
+    gameWon = true;
+    clearInterval(timerInterval);
+    document.getElementById('status-text').textContent = 'All certifications & achievements uncovered!';
+    setTimeout(() => {
+      document.getElementById('win-time').textContent = String(elapsed).padStart(3,'0');
+      document.getElementById('win-overlay').classList.add('show');
+    }, 900);
+  }
+}
+
+/* ══════════════════════════════════════════
+   TIMER
+══════════════════════════════════════════ */
+function startTimer() {
+  elapsed = 0;
+  timerInterval = setInterval(() => {
+    elapsed = Math.min(elapsed + 1, 999);
+    updateTimer(elapsed);
+  }, 1000);
+}
+function updateTimer(v) {
+  document.getElementById('timer-display').textContent = String(v).padStart(3,'0');
+}
+
+/* ══════════════════════════════════════════
+   POSITION JUMP BUTTON (right of window)
+══════════════════════════════════════════ */
+function positionJumpBtn() {
+  requestAnimationFrame(() => {
+    const win = document.getElementById('window');
+    const btn = document.getElementById('jump-btn-wrap');
+    const wr = win.getBoundingClientRect();
+    btn.style.top  = (wr.top + wr.height/2) + 'px';
+    btn.style.left = (wr.right + 18) + 'px';
+    btn.style.transform = 'translateY(-50%)';
+  });
+}
+
+window.addEventListener('resize', positionJumpBtn);
+
+/* ── BOOT ── */
+newGame();
+</script>
+</body>
+</html>

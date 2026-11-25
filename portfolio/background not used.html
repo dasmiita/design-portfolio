@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pixel Portfolio — Adventure Awaits</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Nunito:wght@400;600;700;800&display=swap');
+
+:root {
+  --pixel: 'Press Start 2P', monospace;
+  --vt: 'VT323', monospace;
+  --body: 'Nunito', sans-serif;
+  --sky1: #1a2744;
+  --sky2: #2a4a7a;
+  --sky3: #4a7fb5;
+  --sky4: #7fb8d4;
+  --sky5: #b8d8e8;
+  --pink-glow: #f0a8c0;
+  --peach: #f5c8a8;
+  --grass1: #5aaa58;
+  --grass2: #3d8840;
+  --grass3: #7acc78;
+  --brick1: #c8704a;
+  --brick2: #a85838;
+  --brick3: #e09070;
+  --brick-shadow: #8a4028;
+  --ground-top: #b86040;
+  --accent: #f5a050;
+  --pink: #f0a0c0;
+  --gold: #f0c840;
+  --panel: rgba(18,12,30,0.88);
+  --panel-border: #d0a870;
+  --text-light: #f5ead8;
+  --text-mid: #c8b090;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html,body { width:100%; height:100%; overflow:hidden; background:#1a2744; font-family:var(--body); }
+
+/* ─── LANDING ─── */
+#landing {
+  position:fixed; inset:0; z-index:900;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background: linear-gradient(180deg,
+    #060d1f 0%, #0d1a38 15%, #1a2f60 32%,
+    #2a4a8a 50%, #3a6aaa 65%, #5a8ec0 78%,
+    #7ab0d0 88%, #9acce0 100%);
+  transition: opacity 1.2s cubic-bezier(.4,0,.2,1);
+}
+#landing.out { opacity:0; pointer-events:none; }
+
+.land-stars { position:absolute; inset:0; overflow:hidden; }
+.lstar {
+  position:absolute; background:#fff; image-rendering:pixelated;
+  animation: starTwink var(--dur,2s) var(--del,0s) infinite alternate ease-in-out;
+}
+@keyframes starTwink { 0%{opacity:.15;transform:scale(.8)} 100%{opacity:.9;transform:scale(1.2)} }
+
+.land-glow {
+  position:absolute; width:400px; height:200px;
+  background: radial-gradient(ellipse, rgba(240,168,192,.18) 0%, transparent 70%);
+  top:30%; left:50%; transform:translate(-50%,-50%);
+  animation: glowPulse 4s ease-in-out infinite alternate;
+}
+@keyframes glowPulse { 0%{opacity:.5;transform:translate(-50%,-50%) scale(1)} 100%{opacity:1;transform:translate(-50%,-50%) scale(1.3)} }
+
+#land-char-wrap {
+  position:relative; margin-bottom:28px;
+  filter: drop-shadow(0 8px 24px rgba(240,168,192,.5));
+  animation: landFloat 3s ease-in-out infinite;
+}
+@keyframes landFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+
+.land-title {
+  font-family:var(--pixel); font-size:clamp(10px,2.2vw,18px);
+  color:#fff; text-shadow:3px 3px 0 #c04880, 6px 6px 0 rgba(0,0,0,.4);
+  text-align:center; line-height:2.2; letter-spacing:2px;
+}
+.land-sub {
+  font-family:var(--vt); font-size:clamp(22px,4vw,36px);
+  color:#f0c8d8; letter-spacing:4px; text-align:center; margin:6px 0 36px;
+}
+.start-btn {
+  font-family:var(--pixel); font-size:clamp(8px,1.5vw,12px);
+  color:#0d1a32; background:linear-gradient(135deg,#f0c840,#f5a050);
+  border:none; padding:16px 36px; cursor:pointer;
+  box-shadow:4px 4px 0 #8a5800, 0 0 0 3px #f0c840, 0 0 0 6px #0d1a32,
+             0 0 32px rgba(240,200,64,.4);
+  transition:transform .1s, box-shadow .1s;
+  animation:btnShine 2s ease-in-out infinite alternate;
+}
+@keyframes btnShine { 0%{filter:brightness(1)} 100%{filter:brightness(1.2)} }
+.start-btn:hover { transform:translate(-2px,-2px); box-shadow:6px 6px 0 #8a5800, 0 0 0 3px #f0c840, 0 0 0 6px #0d1a32, 0 0 48px rgba(240,200,64,.6); }
+.start-btn:active { transform:translate(2px,2px); box-shadow:2px 2px 0 #8a5800, 0 0 0 3px #f0c840, 0 0 0 6px #0d1a32; }
+.blink { font-family:var(--pixel); font-size:8px; color:rgba(255,220,200,.6); margin-top:18px; animation:blink 1.1s step-end infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* ─── GAME WORLD ─── */
+#game { position:fixed; inset:0; z-index:100; overflow:hidden; display:none; }
+
+/* SKY LAYERS */
+#sky-bg {
+  position:absolute; inset:0;
+  background: linear-gradient(180deg,
+    #060d1f 0%, #0d1a38 10%, #1a2f60 24%,
+    #2a4a8a 40%, #4070b0 55%, #5a90c8 68%,
+    #7ab8d8 78%, #98cce0 87%, #c0dde8 94%, #d8ece8 100%);
+}
+/* Pink atmospheric glow near horizon */
+#sky-horizon {
+  position:absolute; left:0; right:0; bottom:28%; height:160px;
+  background: linear-gradient(0deg, rgba(240,168,192,.22) 0%, transparent 100%);
+  pointer-events:none;
+}
+/* Star field */
+#starfield { position:absolute; inset:0; pointer-events:none; }
+.star-dot {
+  position:absolute; background:#fff; image-rendering:pixelated;
+  animation:starTwink var(--dur,3s) var(--del,0s) infinite alternate ease-in-out;
+}
+
+/* DISTANT MOUNTAINS */
+#mountains {
+  position:absolute; left:0; right:0; bottom:26%; height:200px;
+  pointer-events:none;
+}
+
+/* VILLAGE LAYER */
+#village {
+  position:absolute; left:0; right:0; bottom:28%; height:220px;
+  pointer-events:none;
+}
+
+/* TREE LAYER */
+#trees-bg {
+  position:absolute; left:0; right:0; bottom:28%; height:130px;
+  pointer-events:none;
+}
+
+/* CLOUDS */
+#clouds { position:absolute; inset:0; pointer-events:none; }
+
+/* MIDGROUND */
+#midground {
+  position:absolute; left:0; right:0; bottom:28%; height:90px;
+  pointer-events:none;
+}
+
+/* GROUND PLATFORM */
+#ground-wrap {
+  position:absolute; left:0; right:0; bottom:0; height:28%;
+  z-index:20;
+}
+
+/* PARTICLES */
+#particles { position:absolute; inset:0; pointer-events:none; z-index:40; }
+
+/* CHARACTER */
+#char-wrap {
+  position:absolute; bottom:28%; left:20%;
+  z-index:50;
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,.4));
+}
+#char-canvas { image-rendering:pixelated; display:block; }
+
+/* ─── HUD ─── */
+#hud {
+  position:fixed; top:0; left:0; right:0; z-index:600;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 20px;
+  background:linear-gradient(180deg,rgba(10,8,20,.7) 0%, transparent 100%);
+  pointer-events:none;
+}
+.hud-left { display:flex; flex-direction:column; gap:3px; }
+.hud-name { font-family:var(--pixel); font-size:clamp(6px,1.2vw,10px); color:var(--text-light); text-shadow:0 0 10px rgba(240,168,192,.6); }
+.hud-tagline { font-family:var(--vt); font-size:18px; color:var(--text-mid); }
+.hud-right { display:flex; flex-direction:column; align-items:flex-end; gap:5px; }
+.hud-prog-label { font-family:var(--pixel); font-size:clamp(5px,0.9vw,8px); color:var(--text-mid); }
+.prog-track { width:140px; height:14px; background:rgba(0,0,0,.5); border:2px solid rgba(240,200,120,.3); border-radius:3px; overflow:hidden; }
+.prog-fill { height:100%; width:0; background:linear-gradient(90deg,#f0a050,#f0c840); transition:width 1.2s cubic-bezier(.4,0,.2,1); border-right:2px solid #c87800; }
+.prog-count { font-family:var(--pixel); font-size:clamp(5px,0.9vw,8px); color:var(--gold); }
+
+/* ─── SECTION CARD ─── */
+#sect-card {
+  position:fixed; bottom:32%; left:50%; transform:translateX(-50%) translateY(40px);
+  width:min(560px,92vw); z-index:500;
+  opacity:0; pointer-events:none;
+  transition:opacity .5s ease, transform .5s cubic-bezier(.34,1.56,.64,1);
+}
+#sect-card.show { opacity:1; transform:translateX(-50%) translateY(0); pointer-events:auto; }
+
+.card-shell {
+  background:var(--panel);
+  border:2px solid rgba(208,168,112,.5);
+  border-radius:10px;
+  box-shadow:0 0 0 1px rgba(0,0,0,.8),
+             0 0 40px rgba(240,168,192,.15),
+             6px 6px 0 rgba(0,0,0,.5),
+             inset 0 1px 0 rgba(255,255,255,.08);
+  overflow:hidden;
+}
+.card-top-bar {
+  height:3px;
+  background:linear-gradient(90deg,#f0a050,#f0c840,#f0a0c0,#90c0f0,#f0a050);
+  background-size:300% 100%;
+  animation:rainbowSlide 4s linear infinite;
+}
+@keyframes rainbowSlide { 0%{background-position:0%} 100%{background-position:300%} }
+.card-body-wrap { padding:20px 24px 16px; }
+.card-head {
+  display:flex; align-items:center; gap:12px; margin-bottom:14px;
+  border-bottom:1px solid rgba(208,168,112,.2); padding-bottom:12px;
+}
+.card-ico { font-size:26px; filter:drop-shadow(0 0 6px rgba(240,200,64,.5)); }
+.card-title-wrap { flex:1; }
+.card-ttl { font-family:var(--pixel); font-size:clamp(8px,1.8vw,12px); color:var(--text-light); text-shadow:0 0 12px rgba(240,168,192,.4); }
+.card-sub { font-family:var(--vt); font-size:18px; color:var(--text-mid); margin-top:2px; }
+.card-badge { font-family:var(--pixel); font-size:clamp(5px,0.9vw,8px); color:var(--gold); background:rgba(240,200,64,.12); border:1px solid rgba(240,200,64,.3); padding:4px 8px; border-radius:4px; white-space:nowrap; }
+.card-content { font-family:var(--body); font-size:clamp(13px,1.8vw,15px); color:#c8b8a0; line-height:1.75; min-height:56px; }
+.card-content strong { color:var(--text-light); }
+.card-content em { color:var(--pink-glow); font-style:italic; }
+.card-foot { display:flex; align-items:center; justify-content:space-between; margin-top:14px; padding-top:10px; border-top:1px solid rgba(208,168,112,.15); }
+.card-hint { font-family:var(--pixel); font-size:clamp(5px,0.9vw,7px); color:rgba(208,168,112,.6); animation:blink 1.3s step-end infinite; }
+.card-pips { display:flex; gap:5px; }
+.pip { width:7px; height:7px; border-radius:2px; background:rgba(208,168,112,.2); border:1px solid rgba(208,168,112,.3); transition:background .4s; }
+.pip.on { background:var(--gold); border-color:var(--accent); box-shadow:0 0 6px rgba(240,200,64,.5); }
+
+/* Skill bars */
+.sk-row { margin:6px 0; }
+.sk-lbl { font-family:var(--pixel); font-size:clamp(5px,.9vw,7px); color:var(--text-mid); margin-bottom:4px; display:flex; justify-content:space-between; }
+.sk-lbl span { color:var(--gold); }
+.sk-track { height:10px; background:rgba(0,0,0,.4); border:1px solid rgba(208,168,112,.3); border-radius:2px; overflow:hidden; }
+.sk-fill { height:100%; width:0; background:linear-gradient(90deg,#4090e0,#80c0f0); transition:width 1.3s cubic-bezier(.4,0,.2,1); border-right:2px solid #60a0e0; }
+.sk-fill.warm { background:linear-gradient(90deg,#f0a050,#f0c840); border-right-color:#c87800; }
+.sk-fill.pink { background:linear-gradient(90deg,#e060a0,#f0a0c0); border-right-color:#c04080; }
+
+/* Tags */
+.tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.tag { font-family:var(--body); font-size:13px; font-weight:700; padding:3px 10px; border-radius:4px; border:1px solid; }
+.tg { color:#60c060; border-color:rgba(96,192,96,.4); background:rgba(96,192,96,.1); }
+.tp { color:#c090f0; border-color:rgba(192,144,240,.4); background:rgba(192,144,240,.1); }
+.tk { color:#f0a0c0; border-color:rgba(240,160,192,.4); background:rgba(240,160,192,.1); }
+.to { color:#f0c060; border-color:rgba(240,192,96,.4); background:rgba(240,192,96,.1); }
+.tb { color:#60c0f0; border-color:rgba(96,192,240,.4); background:rgba(96,192,240,.1); }
+
+/* Proj grid */
+.proj-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:8px; }
+.proj-item { background:rgba(255,255,255,.04); border:1px solid rgba(208,168,112,.2); border-radius:6px; padding:8px 10px; }
+.proj-ico { font-size:16px; margin-bottom:3px; }
+.proj-nm { font-family:var(--pixel); font-size:clamp(5px,.8vw,7px); color:var(--text-light); line-height:1.6; }
+.proj-desc { font-size:12px; color:var(--text-mid); margin-top:2px; }
+
+/* ─── SCREEN SHAKE ─── */
+@keyframes shake { 0%,100%{transform:translate(0)} 20%{transform:translate(-3px,1px)} 40%{transform:translate(3px,-2px)} 60%{transform:translate(-2px,2px)} 80%{transform:translate(2px,-1px)} }
+.do-shake { animation:shake .35s ease !important; }
+
+/* Dust/spark particles */
+.dust { position:absolute; border-radius:50%; pointer-events:none; animation:dustPop .7s ease-out forwards; }
+@keyframes dustPop { 0%{opacity:.8;transform:scale(1) translate(0,0)} 100%{opacity:0;transform:scale(.2) translate(var(--dx),var(--dy))} }
+.spark { position:absolute; pointer-events:none; font-size:12px; animation:sparkFly 1s ease-out forwards; }
+@keyframes sparkFly { 0%{opacity:1;transform:translate(0,0) scale(1)} 100%{opacity:0;transform:translate(var(--sx),var(--sy)) scale(0)} }
+.bird { position:absolute; pointer-events:none; font-size:11px; animation:birdFly linear forwards; }
+@keyframes birdFly { 0%{opacity:0;transform:translateX(0)} 10%{opacity:1} 90%{opacity:1} 100%{opacity:0;transform:translateX(var(--bx))} }
+
+/* Char bob */
+@keyframes charIdle { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ LANDING ═══════════ -->
+<div id="landing">
+  <div class="land-stars" id="landStars"></div>
+  <div class="land-glow"></div>
+  <div id="land-char-wrap">
+    <canvas id="land-char" width="72" height="100" style="width:72px;height:100px;animation:landFloat 3s ease-in-out infinite;display:block;"></canvas>
+  </div>
+  <div class="land-title">✦ Portfolio Adventure ✦</div>
+  <div class="land-sub">~ A Pixel Journey Through My World ~</div>
+  <button class="start-btn" id="startBtn">▶ &nbsp; PRESS START</button>
+  <div class="blink" style="margin-top:18px;">▼ &nbsp; CLICK TO BEGIN &nbsp; ▼</div>
+</div>
+
+<!-- ═══════════ GAME ═══════════ -->
+<div id="game">
+  <div id="sky-bg"></div>
+  <div id="sky-horizon"></div>
+  <div id="starfield"></div>
+  <div id="clouds"></div>
+  <canvas id="mountains-canvas" style="position:absolute;bottom:26%;left:0;right:0;width:100%;image-rendering:pixelated;pointer-events:none;z-index:5;"></canvas>
+  <canvas id="village-canvas" style="position:absolute;bottom:27%;left:0;image-rendering:pixelated;pointer-events:none;z-index:6;"></canvas>
+  <canvas id="trees-canvas" style="position:absolute;bottom:27.5%;left:0;image-rendering:pixelated;pointer-events:none;z-index:7;"></canvas>
+  <canvas id="fg-deco-canvas" style="position:absolute;bottom:28%;left:0;image-rendering:pixelated;pointer-events:none;z-index:9;"></canvas>
+  <canvas id="ground-canvas" style="position:absolute;bottom:0;left:0;width:100%;image-rendering:pixelated;z-index:20;"></canvas>
+  <div id="particles"></div>
+  <div id="char-wrap">
+    <canvas id="char-canvas" width="72" height="100" style="image-rendering:pixelated;width:72px;height:100px;display:block;"></canvas>
+  </div>
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-left">
+      <div class="hud-name">✦ MY PORTFOLIO</div>
+      <div class="hud-tagline">Adventure &amp; Achievements</div>
+    </div>
+    <div class="hud-right">
+      <div class="hud-prog-label">JOURNEY PROGRESS</div>
+      <div class="prog-track"><div class="prog-fill" id="progFill"></div></div>
+      <div class="prog-count" id="progCount">0 / 6</div>
+    </div>
+  </div>
+  <!-- SECTION CARD -->
+  <div id="sect-card">
+    <div class="card-shell">
+      <div class="card-top-bar"></div>
+      <div class="card-body-wrap">
+        <div class="card-head">
+          <span class="card-ico" id="cIco">✦</span>
+          <div class="card-title-wrap">
+            <div class="card-ttl" id="cTitle">LOADING</div>
+            <div class="card-sub" id="cSub">...</div>
+          </div>
+          <span class="card-badge" id="cBadge">01/06</span>
+        </div>
+        <div class="card-content" id="cBody"></div>
+        <div class="card-foot">
+          <span class="card-hint">▶ CLICK ANYWHERE TO CONTINUE</span>
+          <div class="card-pips" id="cPips"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  PIXEL ART DRAWING UTILITIES
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const W = window.innerWidth, H = window.innerHeight;
+const GH = Math.floor(H * 0.28); // ground height
+
+function drawPixels(ctx, scale, grid, pal) {
+  grid.forEach((row,y)=>row.forEach((c,x)=>{ if(c&&pal[c]){ctx.fillStyle=pal[c];ctx.fillRect(x*scale,y*scale,scale,scale);} }));
+}
+
+// ── CHARACTER (drawn with canvas 2D shapes for a human look) ──
+function drawChar(canvas, frame) {
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const cx = canvas.width / 2;
+
+  // Leg animation offsets
+  let legL = 0, legR = 0, armL = 0, armR = 0;
+  if (frame === 1) { legL = -14; legR = 14; armL = 10; armR = -10; }
+  if (frame === 2) { legL = 14; legR = -14; armL = -10; armR = 10; }
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.beginPath(); ctx.ellipse(cx, 96, 16, 5, 0, 0, Math.PI*2); ctx.fill();
+
+  // ── LEGS ──
+  ctx.strokeStyle = '#2a4a8a'; ctx.lineWidth = 7; ctx.lineCap = 'round';
+  // Left leg
+  ctx.beginPath(); ctx.moveTo(cx-5, 68); ctx.lineTo(cx-5+legL*0.5, 82); ctx.lineTo(cx-5+legL, 94); ctx.stroke();
+  // Right leg
+  ctx.beginPath(); ctx.moveTo(cx+5, 68); ctx.lineTo(cx+5+legR*0.5, 82); ctx.lineTo(cx+5+legR, 94); ctx.stroke();
+  // Shoes
+  ctx.fillStyle = '#1a1a2e';
+  ctx.beginPath(); ctx.ellipse(cx-5+legL, 95, 8, 4, 0, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(cx+5+legR, 95, 8, 4, 0, 0, Math.PI*2); ctx.fill();
+
+  // ── BODY ──
+  const bodyGrad = ctx.createLinearGradient(cx-14, 36, cx+14, 36);
+  bodyGrad.addColorStop(0, '#3a6abf');
+  bodyGrad.addColorStop(0.5, '#4a80d8');
+  bodyGrad.addColorStop(1, '#2a50a0');
+  ctx.fillStyle = bodyGrad;
+  ctx.beginPath();
+  ctx.roundRect(cx-14, 36, 28, 34, 5);
+  ctx.fill();
+  // Shirt collar
+  ctx.fillStyle = '#f0ede8';
+  ctx.beginPath(); ctx.moveTo(cx-5,36); ctx.lineTo(cx,42); ctx.lineTo(cx+5,36); ctx.closePath(); ctx.fill();
+
+  // ── ARMS ──
+  ctx.strokeStyle = '#3a6abf'; ctx.lineWidth = 6; ctx.lineCap = 'round';
+  // Left arm
+  ctx.beginPath(); ctx.moveTo(cx-14, 40); ctx.lineTo(cx-20+armL, 56); ctx.lineTo(cx-18+armL, 66); ctx.stroke();
+  // Right arm
+  ctx.beginPath(); ctx.moveTo(cx+14, 40); ctx.lineTo(cx+20+armR, 56); ctx.lineTo(cx+18+armR, 66); ctx.stroke();
+  // Hands
+  ctx.fillStyle = '#d4956a';
+  ctx.beginPath(); ctx.arc(cx-18+armL, 67, 5, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx+18+armR, 67, 5, 0, Math.PI*2); ctx.fill();
+
+  // ── NECK ──
+  ctx.fillStyle = '#d4956a';
+  ctx.fillRect(cx-4, 28, 8, 10);
+
+  // ── HEAD ──
+  const headGrad = ctx.createRadialGradient(cx-3, 18, 2, cx, 20, 14);
+  headGrad.addColorStop(0, '#e8a878');
+  headGrad.addColorStop(1, '#c8784a');
+  ctx.fillStyle = headGrad;
+  ctx.beginPath(); ctx.ellipse(cx, 20, 13, 14, 0, 0, Math.PI*2); ctx.fill();
+
+  // ── HAIR ──
+  ctx.fillStyle = '#2a1408';
+  ctx.beginPath(); ctx.ellipse(cx, 10, 13, 8, 0, Math.PI, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(cx-10, 14, 5, 7, -0.3, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(cx+10, 14, 5, 7, 0.3, 0, Math.PI*2); ctx.fill();
+
+  // ── EYES ──
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.ellipse(cx-5, 19, 3.5, 3, 0, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(cx+5, 19, 3.5, 3, 0, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#1a0a00';
+  ctx.beginPath(); ctx.arc(cx-4.5, 19, 2, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx+5.5, 19, 2, 0, Math.PI*2); ctx.fill();
+  // Eye shine
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(cx-3.8, 18, 0.8, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx+6.2, 18, 0.8, 0, Math.PI*2); ctx.fill();
+
+  // ── SMILE ──
+  ctx.strokeStyle = '#8a3a1a'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(cx, 23, 4, 0.2, Math.PI-0.2); ctx.stroke();
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  ENVIRONMENT DRAWING
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+// ── MOUNTAINS ──
+function drawMountains(canvas) {
+  const cw=W*3, ch=200, sc=4;
+  canvas.width=cw; canvas.height=ch; canvas.style.height=ch+'px';
+  const ctx=canvas.getContext('2d');
+  // Two tones of distant mountains
+  const peaks=[
+    {x:0,w:320,h:160,c:'#1e304a'},{x:250,w:280,h:140,c:'#243660'},
+    {x:480,w:360,h:180,c:'#1a2c44'},{x:780,w:300,h:150,c:'#203258'},
+    {x:1050,w:340,h:170,c:'#1e3050'},{x:1350,w:290,h:145,c:'#243860'},
+    {x:1600,w:360,h:180,c:'#1c2e48'},{x:1900,w:310,h:160,c:'#20345a'},
+    {x:2150,w:280,h:140,c:'#1e3050'},{x:2380,w:340,h:165,c:'#243660'},
+    {x:2650,w:310,h:155,c:'#1c2c46'},
+  ];
+  peaks.forEach(p=>{
+    ctx.fillStyle=p.c;
+    ctx.beginPath(); ctx.moveTo(p.x,ch); ctx.lineTo(p.x+p.w/2,ch-p.h); ctx.lineTo(p.x+p.w,ch); ctx.closePath(); ctx.fill();
+    // Snow cap
+    ctx.fillStyle='rgba(200,220,240,.25)';
+    ctx.beginPath(); ctx.moveTo(p.x+p.w/2-20,ch-p.h+30); ctx.lineTo(p.x+p.w/2,ch-p.h); ctx.lineTo(p.x+p.w/2+20,ch-p.h+30); ctx.closePath(); ctx.fill();
+  });
+  // Mist overlay
+  const g=ctx.createLinearGradient(0,ch-60,0,ch);
+  g.addColorStop(0,'transparent'); g.addColorStop(1,'rgba(90,120,180,.3)');
+  ctx.fillStyle=g; ctx.fillRect(0,0,cw,ch);
+}
+
+// ── VILLAGE (pixel cottages) ──
+function drawVillage(canvas) {
+  const cw=W*4, ch=220, sc=3;
+  canvas.width=cw; canvas.height=ch; canvas.style.width=cw+'px'; canvas.style.height=ch+'px';
+  const ctx=canvas.getContext('2d');
+
+  // Draw a pixel cottage at x,y (y=bottom)
+  function cottage(x,y,scale=1) {
+    const s=sc*scale;
+    // Walls
+    ctx.fillStyle='#c8a870'; ctx.fillRect(x,y-60*s/sc,50*s/sc,60*s/sc);
+    // Darker wall bricks
+    for(let bx=0;bx<50;bx+=12) for(let by=0;by<60;by+=10){
+      ctx.fillStyle='rgba(0,0,0,.12)';
+      ctx.fillRect(x+bx*s/sc+(by%20<10?0:6*s/sc),y-60*s/sc+by*s/sc,10*s/sc,9*s/sc);
+    }
+    // Roof
+    ctx.fillStyle='#8a4838';
+    ctx.beginPath(); ctx.moveTo(x-6*s/sc,y-60*s/sc); ctx.lineTo(x+25*s/sc,y-90*s/sc); ctx.lineTo(x+56*s/sc,y-60*s/sc); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#a05848';
+    ctx.fillRect(x-6*s/sc,y-63*s/sc,62*s/sc,6*s/sc);
+    // Window
+    ctx.fillStyle='#f0d890'; ctx.fillRect(x+10*s/sc,y-45*s/sc,14*s/sc,14*s/sc);
+    ctx.fillStyle='rgba(0,0,0,.2)'; ctx.fillRect(x+10*s/sc,y-45*s/sc,7*s/sc,14*s/sc);
+    ctx.strokeStyle='#7a5030'; ctx.lineWidth=1.5*s/sc;
+    ctx.strokeRect(x+10*s/sc,y-45*s/sc,14*s/sc,14*s/sc);
+    // Door
+    ctx.fillStyle='#7a4020'; ctx.fillRect(x+30*s/sc,y-28*s/sc,12*s/sc,28*s/sc);
+    ctx.fillStyle='#f0c040'; ctx.fillRect(x+39*s/sc,y-16*s/sc,3*s/sc,3*s/sc);
+    // Chimney
+    ctx.fillStyle='#8a4838'; ctx.fillRect(x+34*s/sc,y-100*s/sc,8*s/sc,42*s/sc);
+    // Chimney smoke (dots)
+    for(let i=0;i<3;i++){ ctx.fillStyle=`rgba(200,200,210,${.15+i*.08})`; ctx.beginPath(); ctx.arc(x+38*s/sc,y-102*s/sc-i*10,4+i*3,0,Math.PI*2); ctx.fill(); }
+    // Lantern
+    ctx.fillStyle='#e0a030'; ctx.fillRect(x-4*s/sc,y-35*s/sc,5*s/sc,8*s/sc);
+    ctx.fillStyle='rgba(255,200,80,.4)'; ctx.beginPath(); ctx.arc(x-2*s/sc,y-31*s/sc,7,0,Math.PI*2); ctx.fill();
+  }
+
+  function tallCottage(x,y) {
+    const s=sc;
+    ctx.fillStyle='#b89060'; ctx.fillRect(x,y-80*s/sc,40*s/sc,80*s/sc);
+    for(let bx=0;bx<40;bx+=10) for(let by=0;by<80;by+=12){
+      ctx.fillStyle='rgba(0,0,0,.1)'; ctx.fillRect(x+bx*s/sc+(by%24<12?0:5*s/sc),y-80*s/sc+by*s/sc,8*s/sc,11*s/sc);
+    }
+    ctx.fillStyle='#6a3828';
+    ctx.beginPath(); ctx.moveTo(x-5*s/sc,y-80*s/sc); ctx.lineTo(x+20*s/sc,y-120*s/sc); ctx.lineTo(x+45*s/sc,y-80*s/sc); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='rgba(255,180,180,.3)'; // pink roof highlight
+    ctx.beginPath(); ctx.moveTo(x-5*s/sc,y-80*s/sc); ctx.lineTo(x+20*s/sc,y-120*s/sc); ctx.lineTo(x+22*s/sc,y-115*s/sc); ctx.lineTo(x+0,y-77*s/sc); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#f0d890'; ctx.fillRect(x+8*s/sc,y-55*s/sc,12*s/sc,12*s/sc);
+    ctx.fillStyle='#f0d890'; ctx.fillRect(x+8*s/sc,y-30*s/sc,12*s/sc,12*s/sc);
+    ctx.fillStyle='#7a4020'; ctx.fillRect(x+22*s/sc,y-28*s/sc,12*s/sc,28*s/sc);
+    // Fence segment
+    for(let fx=0;fx<60;fx+=10){
+      ctx.fillStyle='#c8a060'; ctx.fillRect(x-10*s/sc+fx*s/sc,y-20*s/sc,4*s/sc,20*s/sc);
+    }
+    ctx.fillStyle='#c8a060'; ctx.fillRect(x-10*s/sc,y-24*s/sc,60*s/sc,4*s/sc);
+  }
+
+  const houses=[
+    {x:80,y:ch,sc:1},{x:280,y:ch,sc:0.85},{x:460,y:ch,sc:1.1},
+    {x:680,y:ch,sc:0.9},{x:860,y:ch,sc:1.05},{x:1060,y:ch,sc:0.95},
+    {x:1260,y:ch,sc:1.1},{x:1460,y:ch,sc:0.85},{x:1660,y:ch,sc:1},
+    {x:1860,y:ch,sc:0.9},{x:2060,y:ch,sc:1.05},{x:2250,y:ch,sc:0.95},
+    {x:2450,y:ch,sc:1},{x:2660,y:ch,sc:0.85},{x:2860,y:ch,sc:1.05},
+    {x:3060,y:ch,sc:0.95},{x:3260,y:ch,sc:1},{x:3460,y:ch,sc:0.9},
+    {x:3660,y:ch,sc:1.05},{x:3860,y:ch,sc:0.85},
+  ];
+  houses.forEach((h,i)=>{ if(i%5===2) tallCottage(h.x,h.y); else cottage(h.x,h.y,h.sc); });
+  // Distance fog
+  const fog=ctx.createLinearGradient(0,ch-80,0,ch);
+  fog.addColorStop(0,'transparent'); fog.addColorStop(1,'rgba(60,80,120,.4)');
+  ctx.fillStyle=fog; ctx.fillRect(0,0,cw,ch);
+}
+
+// ── TREES ──
+function drawTrees(canvas) {
+  const cw=W*4, ch=130;
+  canvas.width=cw; canvas.height=ch; canvas.style.width=cw+'px'; canvas.style.height=ch+'px';
+  const ctx=canvas.getContext('2d');
+  function tree(x,y,h,dark) {
+    ctx.fillStyle=dark?'#2a5828':'#3a7838';
+    ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x-h/2.5,y+h); ctx.lineTo(x+h/2.5,y+h); ctx.closePath(); ctx.fill();
+    ctx.fillStyle=dark?'#224822':'#306030';
+    ctx.beginPath(); ctx.moveTo(x,y+h*.3); ctx.lineTo(x-h/2,y+h); ctx.lineTo(x+h/2,y+h); ctx.closePath(); ctx.fill();
+    // Highlight
+    ctx.fillStyle='rgba(160,220,80,.15)';
+    ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+h/3,y+h*.5); ctx.lineTo(x,y+h*.3); ctx.closePath(); ctx.fill();
+    // Trunk
+    ctx.fillStyle='#6a4020'; ctx.fillRect(x-4,y+h,8,18);
+  }
+  const treeDefs=[];
+  for(let i=0;i<60;i++) treeDefs.push({x:i*130+Math.random()*60,h:40+Math.random()*50,dark:Math.random()>.5});
+  treeDefs.forEach(t=>tree(t.x,ch-18-t.h,t.h,t.dark));
+}
+
+// ── FG DECO (fence, flowers, lanterns) ──
+function drawFgDeco(canvas) {
+  const cw=W*4, ch=40;
+  canvas.width=cw; canvas.height=ch; canvas.style.width=cw+'px'; canvas.style.height=ch+'px';
+  const ctx=canvas.getContext('2d');
+  // Fence
+  for(let x=0;x<cw;x+=28){
+    ctx.fillStyle='#c8a060'; ctx.fillRect(x,10,6,ch-10);
+    if(x%140===0){ ctx.fillStyle='#d8b070'; ctx.fillRect(x-2,8,10,ch-8); }
+  }
+  ctx.fillStyle='#d0a858'; ctx.fillRect(0,12,cw,6);
+  ctx.fillStyle='#b08840'; ctx.fillRect(0,20,cw,3);
+  // Small flowers on fence
+  const flowers=['🌸','🌼','🌺'];
+  for(let x=40;x<cw;x+=180){ ctx.font='14px serif'; ctx.fillText(flowers[Math.floor(x/180)%3],x,10); }
+}
+
+// ── GROUND (smooth green land) ──
+function drawGround(canvas) {
+  const cw=W, ch=GH+4;
+  canvas.width=cw; canvas.height=ch; canvas.style.height=ch+'px';
+  const ctx=canvas.getContext('2d');
+  // Smooth green gradient top to bottom
+  const g=ctx.createLinearGradient(0,0,0,ch);
+  g.addColorStop(0,'#6abf68');
+  g.addColorStop(0.08,'#5aaa58');
+  g.addColorStop(0.3,'#4a9848');
+  g.addColorStop(0.6,'#3d8840');
+  g.addColorStop(1,'#2d6830');
+  ctx.fillStyle=g;
+  ctx.fillRect(0,0,cw,ch);
+  // Subtle top highlight strip
+  const hl=ctx.createLinearGradient(0,0,0,6);
+  hl.addColorStop(0,'rgba(180,255,160,.35)');
+  hl.addColorStop(1,'transparent');
+  ctx.fillStyle=hl; ctx.fillRect(0,0,cw,6);
+  // Subtle depth bands
+  ctx.fillStyle='rgba(0,0,0,.06)'; ctx.fillRect(0,ch*.4,cw,ch*.6);
+  ctx.fillStyle='rgba(0,0,0,.04)'; ctx.fillRect(0,ch*.7,cw,ch*.3);
+}
+
+// ── PIXEL CLOUDS ──
+function makeCloud(w,h) {
+  const c=document.createElement('canvas');
+  c.width=w; c.height=h;
+  const ctx=c.getContext('2d');
+  // Layered cloud blob
+  const blobs=[
+    {cx:w*.5,cy:h*.6,rx:w*.38,ry:h*.35},
+    {cx:w*.3,cy:h*.7,rx:w*.25,ry:h*.28},
+    {cx:w*.7,cy:h*.68,rx:w*.28,ry:h*.28},
+    {cx:w*.5,cy:h*.45,rx:w*.22,ry:h*.22},
+  ];
+  blobs.forEach(b=>{
+    const g=ctx.createRadialGradient(b.cx,b.cy,0,b.cx,b.cy,Math.max(b.rx,b.ry));
+    g.addColorStop(0,'rgba(240,248,255,0.95)');
+    g.addColorStop(.5,'rgba(220,240,255,0.7)');
+    g.addColorStop(1,'rgba(200,230,255,0)');
+    ctx.fillStyle=g;
+    ctx.beginPath();
+    ctx.ellipse(b.cx,b.cy,b.rx,b.ry,0,0,Math.PI*2);
+    ctx.fill();
+  });
+  // Pink tint on bottom
+  const pg=ctx.createLinearGradient(0,h*.5,0,h);
+  pg.addColorStop(0,'transparent'); pg.addColorStop(1,'rgba(240,168,192,.15)');
+  ctx.fillStyle=pg; ctx.fillRect(0,0,w,h);
+  return c;
+}
+
+function setupClouds() {
+  const wrap=document.getElementById('clouds');
+  const defs=[
+    {w:180,h:70,top:'6%',x:5,spd:.4},{w:120,h:50,top:'14%',x:22,spd:.25},
+    {w:240,h:80,top:'4%',x:42,spd:.35},{w:100,h:40,top:'20%',x:60,spd:.18},
+    {w:200,h:70,top:'10%',x:75,spd:.30},{w:140,h:55,top:'3%',x:88,spd:.38},
+    {w:160,h:60,top:'16%',x:15,spd:.22},{w:220,h:75,top:'8%',x:55,spd:.28},
+  ];
+  return defs.map(d=>{
+    const img=makeCloud(d.w,d.h);
+    const div=document.createElement('div');
+    div.style.cssText=`position:absolute;top:${d.top};left:${d.x}%;pointer-events:none;opacity:.9;`;
+    div.appendChild(img);
+    wrap.appendChild(div);
+    return {el:div,x:d.x,spd:d.spd};
+  });
+}
+
+// Stars for game sky
+function setupStars() {
+  const wrap=document.getElementById('starfield');
+  for(let i=0;i<150;i++){
+    const s=document.createElement('div');
+    s.className='star-dot';
+    const r=Math.random();
+    const sz=r>.85?4:r>.65?3:r>.4?2:1;
+    s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*65}%;--dur:${1.5+Math.random()*4}s;--del:${Math.random()*4}s;`;
+    wrap.appendChild(s);
+  }
+}
+
+// Landing stars
+function setupLandStars() {
+  const w=document.getElementById('landStars');
+  for(let i=0;i<150;i++){
+    const s=document.createElement('div');
+    s.className='lstar';
+    const r=Math.random();
+    const sz=r>.85?4:r>.65?3:r>.4?2:1;
+    s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${Math.random()*85}%;--dur:${1+Math.random()*3}s;--del:${Math.random()*4}s;`;
+    w.appendChild(s);
+  }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  SECTIONS DATA
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const SECTIONS=[
+  {
+    ico:'🌸',title:'ABOUT ME',sub:'The Adventurer',badge:'01/06',
+    body:`<strong>Hello, world. ✦</strong><br>
+I'm a developer &amp; designer who believes every interface should feel like a little world worth exploring. I craft things that are warm, intentional, and a little bit magical.<br><br>
+<em>Late nights, lo-fi playlists, fairy lights, and a lot of green tea.</em> That's where the ideas come from.`
+  },
+  {
+    ico:'⚡',title:'SKILLS',sub:'Power-Ups Collected',badge:'02/06',
+    body:`<strong>Abilities Unlocked:</strong>`,
+    skills:[
+      {n:'HTML / CSS',v:92,type:'warm'},{n:'JavaScript',v:86,type:''},
+      {n:'React & Next.js',v:80,type:'blue'},{n:'Python',v:74,type:'pink'},
+      {n:'UI/UX Design',v:88,type:'warm'},{n:'Figma',v:84,type:'pink'},
+    ]
+  },
+  {
+    ico:'🗺️',title:'PROJECTS',sub:'Quests Completed',badge:'03/06',
+    body:`<strong>Things I've Built:</strong>`,
+    projects:[
+      {ico:'🌐',nm:'Web Portfolio',desc:'This very world.'},
+      {ico:'📱',nm:'Mobile App',desc:'React Native + Expo'},
+      {ico:'🤖',nm:'AI Chatbot',desc:'LLM + custom UI'},
+      {ico:'📊',nm:'Dashboard',desc:'D3.js data viz'},
+    ],
+    footer:`<br><em>Every project taught me something new. Every bug was a mini-boss.</em> 🎮`
+  },
+  {
+    ico:'🏆',title:'CERTIFICATIONS',sub:'Badges Earned',badge:'04/06',
+    body:`<strong>Credentials Collected:</strong><br>
+<div class="tags">
+<span class="tag tg">✓ Web Development</span>
+<span class="tag tp">✓ UX Design</span>
+<span class="tag to">✓ Python & ML</span>
+<span class="tag tb">✓ Cloud Fundamentals</span>
+<span class="tag tk">✓ React Certified</span>
+<span class="tag tp">✓ Figma Advanced</span>
+<span class="tag tg">✓ Accessibility</span>
+</div><br>
+<em>Always leveling up. The learning never stops.</em> 📚`
+  },
+  {
+    ico:'🎨',title:'HOBBIES',sub:'Side Quests',badge:'05/06',
+    body:`<strong>What I Do When Not Coding:</strong><br>
+<div class="tags">
+<span class="tag tk">🎨 Pixel Art</span>
+<span class="tag tp">🎵 Lo-fi Music</span>
+<span class="tag tg">📚 Reading</span>
+<span class="tag to">🌿 Plant Parent</span>
+<span class="tag tb">🍵 Tea Collector</span>
+<span class="tag tk">✈️ Wanderlust</span>
+<span class="tag tg">🎮 Indie Games</span>
+<span class="tag tp">✍️ Journaling</span>
+</div><br>
+<em>Life is a game — collect all the experiences!</em> 🌸`
+  },
+  {
+    ico:'💌',title:'CONTACT',sub:"Let's Connect",badge:'06/06',
+    body:`<strong>Ready to Team Up? ✦</strong><br>
+I'm always open to interesting projects, collaborations, and good conversations over tea.<br><br>
+<div class="tags">
+<span class="tag to">✉️ hello@myportfolio.dev</span>
+<span class="tag tb">💼 LinkedIn</span>
+<span class="tag tg">🐙 GitHub</span>
+<span class="tag tk">🐦 Twitter</span>
+</div><br>
+<em>"The best projects start with a simple hello."</em> 👋`
+  }
+];
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  GAME ENGINE
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let clouds=[];
+let state={
+  running:false, cardVisible:false, sectionIdx:-1,
+  bgOff:0, charBob:0, runFrame:0, frameT:0,
+  dustT:0, sparkT:0, birdT:0, idleT:0, done:false,
+  villageOff:0, treeOff:0, decoOff:0, fgDecoOff:0,
+  grassWave:0
+};
+
+// Scrollable canvases offsets
+let vOff=0, tOff=0, dOff=0; // village, trees, deco
+
+function buildContent(s) {
+  let h=s.body||'';
+  if(s.skills){
+    h+=s.skills.map(sk=>`
+      <div class="sk-row">
+        <div class="sk-lbl">${sk.n} <span>${sk.v}%</span></div>
+        <div class="sk-track"><div class="sk-fill ${sk.type?'sk-'+sk.type:'warm'}" data-v="${sk.v}"></div></div>
+      </div>`).join('');
+  }
+  if(s.projects){
+    h+=`<div class="proj-grid">`+s.projects.map(p=>`
+      <div class="proj-item">
+        <div class="proj-ico">${p.ico}</div>
+        <div class="proj-nm">${p.nm}</div>
+        <div class="proj-desc">${p.desc}</div>
+      </div>`).join('')+`</div>`;
+  }
+  if(s.footer) h+=s.footer;
+  return h;
+}
+
+function showCard(idx) {
+  const s=SECTIONS[idx];
+  document.getElementById('cIco').textContent=s.ico;
+  document.getElementById('cTitle').textContent=s.title;
+  document.getElementById('cSub').textContent=s.sub;
+  document.getElementById('cBadge').textContent=s.badge;
+  document.getElementById('cBody').innerHTML=buildContent(s);
+  // Pips
+  const pip=document.getElementById('cPips'); pip.innerHTML='';
+  SECTIONS.forEach((_,i)=>{ const d=document.createElement('div'); d.className='pip'+(i<=idx?' on':''); pip.appendChild(d); });
+  // Progress
+  document.getElementById('progFill').style.width=((idx+1)/SECTIONS.length*100)+'%';
+  document.getElementById('progCount').textContent=`${idx+1} / 6`;
+  // Show
+  const card=document.getElementById('sect-card');
+  card.classList.add('show');
+  state.cardVisible=true;
+  // Skill bar animation
+  if(s.skills){
+    setTimeout(()=>{
+      document.querySelectorAll('.sk-fill').forEach(b=>{ b.style.width=b.dataset.v+'%'; });
+    },300);
+  }
+}
+
+function hideCard() {
+  document.getElementById('sect-card').classList.remove('show');
+  state.cardVisible=false;
+}
+
+function advanceSection() {
+  state.sectionIdx++;
+  if(state.sectionIdx>=SECTIONS.length){ showDone(); return; }
+  state.running=true;
+  state.runFrame=0; state.frameT=0;
+  const delay=2800+Math.random()*1200;
+  setTimeout(()=>{ if(!state.cardVisible&&state.running){ doStop(); } },delay);
+}
+
+function doStop() {
+  state.running=false;
+  // Dust burst only, no screen shake
+  for(let i=0;i<8;i++) spawnDust();
+  setTimeout(()=>showCard(state.sectionIdx),350);
+}
+
+function showDone() {
+  state.running=false;
+  document.getElementById('progFill').style.width='100%';
+  document.getElementById('progCount').textContent='6 / 6';
+  document.getElementById('cIco').textContent='🎉';
+  document.getElementById('cTitle').textContent='GAME CLEAR!';
+  document.getElementById('cSub').textContent='Journey Complete';
+  document.getElementById('cBadge').textContent='✓ DONE';
+  document.getElementById('cBody').innerHTML=`
+    <strong>You've seen it all! ✦</strong><br>
+    Thanks for travelling through my pixel world. This portfolio was crafted with love, late nights, and lo-fi playlists.<br><br>
+    <div class="tags"><span class="tag to">🏆 Full Run!</span><span class="tag tk">💌 Let's collab</span><span class="tag tg">🌸 Thank you!</span></div>`;
+  document.getElementById('sect-card').classList.add('show');
+  state.done=true;
+  state.cardVisible=true;
+  const pip=document.getElementById('cPips'); pip.innerHTML='';
+  SECTIONS.forEach(()=>{ const d=document.createElement('div'); d.className='pip on'; pip.appendChild(d); });
+}
+
+// ── PARTICLES ──
+function spawnDust() {
+  const wrap=document.getElementById('particles');
+  const charEl=document.getElementById('char-wrap');
+  const cx=parseInt(charEl.style.left||'20%')+20;
+  const cy=H*(1-0.28)-10;
+  const d=document.createElement('div'); d.className='dust';
+  const sz=4+Math.random()*6;
+  d.style.cssText=`left:${cx+Math.random()*30}px;top:${cy}px;width:${sz}px;height:${sz}px;background:rgba(${160+Math.random()*60|0},${120+Math.random()*40|0},${80+Math.random()*30|0},.6);--dx:${(Math.random()-.5)*40}px;--dy:${-10-Math.random()*20}px;`;
+  wrap.appendChild(d); setTimeout(()=>d.remove(),800);
+}
+
+function spawnSpark() {
+  const wrap=document.getElementById('particles');
+  const sparks=['✦','·','⋆','*','˚'];
+  const s=document.createElement('div'); s.className='spark';
+  s.textContent=sparks[Math.floor(Math.random()*sparks.length)];
+  s.style.cssText=`left:${Math.random()*W}px;top:${Math.random()*H*.6}px;color:rgba(240,200,180,${.4+Math.random()*.4});--sx:${(Math.random()-.5)*60}px;--sy:${-20-Math.random()*60}px;animation-duration:${1.5+Math.random()}s;`;
+  wrap.appendChild(s); setTimeout(()=>s.remove(),2500);
+}
+
+function spawnBird() {
+  const wrap=document.getElementById('particles');
+  const b=document.createElement('div'); b.className='bird';
+  const startX=Math.random()>.5?-30:W+30;
+  const goX=startX<0?W+60:-W-60;
+  b.textContent='🐦';
+  b.style.cssText=`left:${startX}px;top:${5+Math.random()*20}%;--bx:${goX}px;animation-duration:${8+Math.random()*6}s;transform:${startX<0?'':'scaleX(-1)'};`;
+  wrap.appendChild(b); setTimeout(()=>b.remove(),15000);
+}
+
+// ── MAIN LOOP ──
+let raf2;
+function loop() {
+  raf2=requestAnimationFrame(loop);
+  // Cloud parallax
+  clouds.forEach(c=>{
+    c.x-=c.spd*.015;
+    if(c.x<-15) c.x=108;
+    c.el.style.left=c.x+'%';
+  });
+  // Bg scrolling
+  if(state.running||state.bgOff>0){
+    if(state.running) state.bgOff+=3;
+    vOff=(vOff+1.2)%(W*4); tOff=(tOff+2)%(W*4); dOff=(dOff+3)%(W*4);
+    const vcv=document.getElementById('village-canvas');
+    const tcv=document.getElementById('trees-canvas');
+    const dcv=document.getElementById('fg-deco-canvas');
+    vcv.style.left=-vOff+'px';
+    tcv.style.left=-tOff+'px';
+    dcv.style.left=-dOff+'px';
+    // Mountains (very slow)
+    const mcv=document.getElementById('mountains-canvas');
+    mcv.style.transform=`translateX(${-(state.bgOff*.08)%W}px)`;
+  }
+  // Character animation
+  if(state.running){
+    state.frameT++;
+    if(state.frameT>7){ state.runFrame=(state.runFrame+1)%2; state.frameT=0; drawChar(document.getElementById('char-canvas'),state.runFrame+1); }
+    state.dustT++;
+    if(state.dustT>5){ spawnDust(); state.dustT=0; }
+    state.grassWave+=.05;
+  } else {
+    state.idleT++;
+    const bob=Math.sin(state.idleT*.05)*2;
+    document.getElementById('char-wrap').style.marginBottom=bob+'px';
+    if(state.idleT%60===0) drawChar(document.getElementById('char-canvas'),0);
+  }
+  // Ambient sparks
+  state.sparkT++;
+  if(state.sparkT>80){ spawnSpark(); state.sparkT=0; }
+  // Birds occasionally
+  state.birdT++;
+  if(state.birdT>600){ spawnBird(); state.birdT=0; }
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+//  INIT
+// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function startGame() {
+  document.getElementById('landing').classList.add('out');
+  setTimeout(()=>{
+    document.getElementById('landing').style.display='none';
+    const g=document.getElementById('game'); g.style.display='block';
+    // Draw environment
+    drawGround(document.getElementById('ground-canvas'));
+    drawMountains(document.getElementById('mountains-canvas'));
+    drawVillage(document.getElementById('village-canvas'));
+    drawTrees(document.getElementById('trees-canvas'));
+    drawFgDeco(document.getElementById('fg-deco-canvas'));
+    // Stars + clouds
+    setupStars(); clouds=setupClouds();
+    // Position char
+    const charWrap=document.getElementById('char-wrap');
+    charWrap.style.left=(W*.2)+'px';
+    drawChar(document.getElementById('char-canvas'),0);
+    loop();
+    setTimeout(advanceSection,1400);
+  },1200);
+}
+
+// Init landing
+setupLandStars();
+drawChar(document.getElementById('land-char'),0);
+
+// Click handler
+document.addEventListener('click', e=>{
+  if(e.target.closest('#startBtn')){ startGame(); return; }
+  if(document.getElementById('game').style.display==='block'){
+    if(state.cardVisible && !state.done){ hideCard(); setTimeout(advanceSection,500); }
+  }
+});
+
+// Resize ground on window resize
+window.addEventListener('resize',()=>{
+  if(document.getElementById('game').style.display==='block'){
+    drawGround(document.getElementById('ground-canvas'));
+  }
+});
+</script>
+</body>
+</html>

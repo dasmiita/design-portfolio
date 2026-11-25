@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link
+  rel="preload"
+  as="image"
+  href="bg4.jpg"
+  fetchpriority="high"
+>
+<link rel="prefetch" href="bg4.jpg">
+    <style>
+        @view-transition { navigation: auto; }
+       
+  html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    
+    background: linear-gradient(#4a86d8 0%, #8fc0ee 52%, #5f9a35 53%, #2f6b1a 100%);
+    overflow: hidden;
+}
+
+.wallpaper {
+    position: fixed;
+    inset: 0;
+    background-image: url("images/bliss.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    opacity: 0;
+    transition: opacity 2s ease-in-out;
+
+    z-index: 0;
+    pointer-events: none;
+}
+
+.wallpaper.loaded {
+    opacity: 1;
+}
+
+        #background{
+            position:absolute;
+            top:0;
+            left:0;
+            width:100%;
+            height:100%;
+
+            background-image:url("../bg4.jpg");
+            background-size:cover;
+            background-repeat:no-repeat;
+            background-position:center;
+
+            image-rendering:pixelated;
+        }
+
+        #screen{
+            position:absolute;
+            top:50%;
+            left:50%;
+
+            transform:translate(-50%, -50%) scale(0);
+
+            animation:popup 1s ease forwards;
+        }
+
+        #screen img{
+            width:900px;
+            max-width:95vw;
+            border-radius: 8px;
+
+            display:block;
+        }
+
+        /* CLICKABLE ICONS */
+
+        .icon-link{
+            position:absolute;
+            display:block;
+            z-index:10;
+
+            /* debug */
+            /* background:red;
+            opacity:0.3; */
+        }
+
+        /* ABOUT ME */
+        #about{
+            top:175px;
+            left:245px;
+            width:120px;
+            height:170px;
+        }
+
+        /* ACHIEVEMENTS */
+        #achievements{
+            top:175px;
+            left:425px;
+            width:170px;
+            height:180px;
+        }
+
+        /* PROJECTS */
+        #projects{
+            top:185px;
+            left:615px;
+            width:135px;
+            height:155px;
+        }
+
+        /* SKILLS */
+        #skills{
+            top:165px;
+            left:770px;
+            width:150px;
+            height:180px;
+        }
+
+        /* CONTACT */
+        #contact{
+            top:410px;
+            left:240px;
+            width:170px;
+            height:170px;
+        }
+
+        @keyframes popup{
+            0%{
+                opacity:0;
+                transform:translate(-50%, -50%) scale(0) rotate(-10deg);
+            }
+
+            70%{
+                opacity:1;
+                transform:translate(-50%, -50%) scale(1.1) rotate(2deg);
+            }
+
+            100%{
+                opacity:1;
+                transform:translate(-50%, -50%) scale(1) rotate(0deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="wallpaper"></div>
+    <div id="background"></div>
+
+    <div id="screen">
+
+        <img src="fingamescreen.png">
+
+        <!-- CLICKABLE AREAS -->
+
+        <a href="aboutme.html" class="icon-link" id="about"></a>
+
+        <a href="certificates.html" class="icon-link" id="achievements"></a>
+
+        <a href="projects.html" class="icon-link" id="projects"></a>
+
+        <a href="skills.html" class="icon-link" id="skills"></a>
+
+        <a href="contactme.html" class="icon-link" id="contact"></a>
+
+    </div>
+    <script>
+        
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CD Player</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'VT323', 'Courier New', monospace;
+  }
+
+  .cd-player {
+    width: 420px;
+    background: #d4d0c8;
+    border-top: 2px solid #ffffff;
+    border-left: 2px solid #ffffff;
+    border-right: 2px solid #808080;
+    border-bottom: 2px solid #808080;
+    box-shadow: 1px 1px 0 #000, inset 1px 1px 0 #dfdfdf;
+    user-select: none;
+  }
+
+  /* ── TITLEBAR ── */
+  .titlebar {
+    background: linear-gradient(90deg, #0a246a 0%, #3a6ea5 60%, #0a246a 100%);
+    padding: 3px 4px 3px 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+  }
+
+  .titlebar-left {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .titlebar-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+  }
+
+  .titlebar-title {
+    font-family: 'VT323', monospace;
+    font-size: 17px;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    text-shadow: 1px 1px 0 #00008b;
+    font-weight: bold;
+  }
+
+  .win-btns {
+    display: flex;
+    gap: 2px;
+  }
+
+  .win-btn {
+    width: 17px;
+    height: 15px;
+    background: #d4d0c8;
+    border-top: 1.5px solid #ffffff;
+    border-left: 1.5px solid #ffffff;
+    border-right: 1.5px solid #555;
+    border-bottom: 1.5px solid #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #000;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    line-height: 1;
+  }
+
+  .win-btn:active {
+    border-top: 1.5px solid #555;
+    border-left: 1.5px solid #555;
+    border-right: 1.5px solid #fff;
+    border-bottom: 1.5px solid #fff;
+  }
+
+  /* ── MENU BAR ── */
+  .menubar {
+    background: #d4d0c8;
+    padding: 2px 6px;
+    display: flex;
+    gap: 2px;
+    border-bottom: 1px solid #808080;
+  }
+
+  .menu-item {
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    color: #000;
+    padding: 1px 6px;
+    cursor: default;
+    letter-spacing: 0.3px;
+  }
+
+  .menu-item:hover {
+    background: #0a246a;
+    color: #fff;
+  }
+
+  .menu-item span {
+    text-decoration: underline;
+  }
+
+  /* ── MAIN BODY ── */
+  .player-body {
+    padding: 10px 10px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  /* ── TOP ROW: disc + info ── */
+  .top-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .disc-area {
+    width: 80px;
+    height: 80px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #c0c0c0;
+    border-top: 1.5px solid #808080;
+    border-left: 1.5px solid #808080;
+    border-right: 1.5px solid #fff;
+    border-bottom: 1.5px solid #fff;
+    font-size: 56px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .disc-img {
+    font-size: 54px;
+    line-height: 1;
+    transition: transform 0.1s;
+    display: block;
+  }
+
+  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  .disc-spinning { animation: spin 2s linear infinite; }
+
+  .info-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .info-field {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .field-label {
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    color: #000;
+    min-width: 34px;
+    letter-spacing: 0.3px;
+  }
+
+  .field-box {
+    flex: 1;
+    background: #fff;
+    border-top: 1.5px solid #808080;
+    border-left: 1.5px solid #808080;
+    border-right: 1.5px solid #dfdfdf;
+    border-bottom: 1.5px solid #dfdfdf;
+    padding: 1px 5px 1px 4px;
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    color: #000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    height: 22px;
+  }
+
+  .field-box .dropdown-arrow {
+    width: 16px;
+    height: 16px;
+    background: #d4d0c8;
+    border-top: 1.5px solid #fff;
+    border-left: 1.5px solid #fff;
+    border-right: 1.5px solid #555;
+    border-bottom: 1.5px solid #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    flex-shrink: 0;
+    margin-right: -4px;
+    cursor: pointer;
+  }
+
+  .field-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+  }
+
+  /* ── PROGRESS ROW ── */
+  .progress-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .time-label {
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    color: #000;
+    min-width: 30px;
+    text-align: right;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 18px;
+    background: #fff;
+    border-top: 1.5px solid #808080;
+    border-left: 1.5px solid #808080;
+    border-right: 1.5px solid #dfdfdf;
+    border-bottom: 1.5px solid #dfdfdf;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: #0a246a;
+    width: 0%;
+    position: relative;
+    transition: width 0.4s linear;
+  }
+
+  .progress-thumb {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 14px;
+    height: 100%;
+    background: #d4d0c8;
+    border-top: 1.5px solid #fff;
+    border-left: 1.5px solid #fff;
+    border-right: 1.5px solid #555;
+    border-bottom: 1.5px solid #555;
+  }
+
+  /* ── CONTROLS ROW ── */
+  .controls-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 0;
+  }
+
+  .ctrl-btn {
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    color: #000;
+    background: #d4d0c8;
+    border-top: 1.5px solid #fff;
+    border-left: 1.5px solid #fff;
+    border-right: 1.5px solid #808080;
+    border-bottom: 1.5px solid #808080;
+    width: 30px;
+    height: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
+  }
+
+  .ctrl-btn:active {
+    border-top: 1.5px solid #808080;
+    border-left: 1.5px solid #808080;
+    border-right: 1.5px solid #fff;
+    border-bottom: 1.5px solid #fff;
+  }
+
+  .ctrl-btn.play-btn {
+    width: 38px;
+  }
+
+  .vol-group {
+    margin-left: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: center;
+  }
+
+  .vol-label {
+    font-family: 'VT323', monospace;
+    font-size: 12px;
+    color: #555;
+    letter-spacing: 0.3px;
+  }
+
+  .vol-box {
+    width: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .vol-up, .vol-down {
+    width: 18px;
+    height: 16px;
+    background: #d4d0c8;
+    border-top: 1.5px solid #fff;
+    border-left: 1.5px solid #fff;
+    border-right: 1.5px solid #808080;
+    border-bottom: 1.5px solid #808080;
+    font-size: 11px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: monospace;
+  }
+
+  .vol-up:active, .vol-down:active {
+    border-top: 1.5px solid #808080;
+    border-left: 1.5px solid #808080;
+    border-right: 1.5px solid #fff;
+    border-bottom: 1.5px solid #fff;
+  }
+
+  .vol-bar-track {
+    width: 10px;
+    height: 56px;
+    background: #fff;
+    border-top: 1.5px solid #808080;
+    border-left: 1.5px solid #808080;
+    border-right: 1.5px solid #dfdfdf;
+    border-bottom: 1.5px solid #dfdfdf;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    overflow: hidden;
+  }
+
+  .vol-bar-fill {
+    width: 100%;
+    background: #0a246a;
+    height: 80%;
+    transition: height 0.2s;
+  }
+
+  /* ── PLAYLIST ── */
+  .playlist-section {
+    border-top: 1.5px solid #808080;
+    margin-top: 2px;
+  }
+
+  .playlist-titlebar {
+    background: linear-gradient(90deg, #0a246a 0%, #3a6ea5 60%, #0a246a 100%);
+    padding: 2px 4px 2px 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .playlist-title-text {
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    color: #fff;
+    font-weight: bold;
+    text-shadow: 1px 1px 0 #00008b;
+  }
+
+  .playlist-inner {
+    background: #fff;
+    border-top: 1.5px solid #808080;
+    border-left: 1.5px solid #808080;
+    border-right: 1.5px solid #dfdfdf;
+    border-bottom: 1.5px solid #dfdfdf;
+    margin: 6px 10px 8px;
+    max-height: 140px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #808080 #d4d0c8;
+  }
+
+  .playlist-inner::-webkit-scrollbar { width: 14px; }
+  .playlist-inner::-webkit-scrollbar-track { background: #d4d0c8; border-left: 1px solid #808080; }
+  .playlist-inner::-webkit-scrollbar-thumb {
+    background: #d4d0c8;
+    border-top: 1.5px solid #fff;
+    border-left: 1.5px solid #fff;
+    border-right: 1.5px solid #808080;
+    border-bottom: 1.5px solid #808080;
+  }
+
+  .playlist-item {
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    color: #000;
+    padding: 2px 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: default;
+    white-space: nowrap;
+    border-bottom: 1px solid transparent;
+  }
+
+  .playlist-item:hover { background: #d4d0c8; }
+
+  .playlist-item.active {
+    background: #0a246a;
+    color: #fff;
+  }
+
+  .pl-num   { min-width: 20px; color: inherit; opacity: 0.7; font-size: 13px; }
+  .pl-title { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+  .pl-dur   { min-width: 38px; text-align: right; opacity: 0.7; font-size: 13px; }
+
+  .loading-msg {
+    font-family: 'VT323', monospace;
+    font-size: 15px;
+    color: #555;
+    text-align: center;
+    padding: 12px;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  .blink { animation: blink 1s infinite; }
+
+  #sc-iframe {
+    position: fixed; left: -9999px; top: -9999px;
+    width: 300px; height: 166px; border: none; visibility: hidden;
+  }
+
+  .status-bar {
+    background: #d4d0c8;
+    border-top: 1px solid #808080;
+    padding: 2px 8px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .status-panel {
+    font-family: 'VT323', monospace;
+    font-size: 13px;
+    color: #000;
+    border-top: 1.5px solid #808080;
+    border-left: 1.5px solid #808080;
+    border-right: 1.5px solid #fff;
+    border-bottom: 1.5px solid #fff;
+    padding: 1px 6px;
+    flex: 1;
+  }
+</style>
+</head>
+<body>
+
+<iframe id="sc-iframe" src="" allow="autoplay" aria-hidden="true" tabindex="-1"></iframe>
+
+<div class="cd-player">
+
+  <!-- TITLEBAR -->
+  <div class="titlebar">
+    <div class="titlebar-left">
+      <div class="titlebar-icon">💿</div>
+      <span class="titlebar-title">Music Player</span>
+    </div>
+    <div class="win-btns">
+      <div class="win-btn" title="Minimize">_</div>
+      <div class="win-btn" title="Maximize">□</div>
+      <div class="win-btn" title="Close">✕</div>
+    </div>
+  </div>
+
+  <!-- MENU BAR -->
+  <div class="menubar">
+    <div class="menu-item"><span>D</span>isc</div>
+    <div class="menu-item"><span>V</span>iew</div>
+    <div class="menu-item"><span>O</span>ptions</div>
+    <div class="menu-item"><span>H</span>elp</div>
+  </div>
+
+  <!-- MAIN BODY -->
+  <div class="player-body">
+
+    <!-- TOP ROW -->
+    <div class="top-row">
+      <div class="disc-area">
+        <span class="disc-img" id="disc-img">💿</span>
+      </div>
+
+      <div class="info-panel">
+        <div class="info-field">
+          <span class="field-label">Artist:</span>
+          <div class="field-box">
+            <span class="field-text" id="field-artist">—</span>
+            <span class="dropdown-arrow">▼</span>
+          </div>
+        </div>
+        <div class="info-field">
+          <span class="field-label">Title:</span>
+          <div class="field-box">
+            <span class="field-text" id="field-title">Loading<span class="blink">...</span></span>
+            <span class="dropdown-arrow">▼</span>
+          </div>
+        </div>
+
+        <!-- PROGRESS -->
+        <div class="progress-row">
+          <span class="time-label" id="time-current">0:00</span>
+          <div class="progress-track" id="progress-track">
+            <div class="progress-fill" id="progress-fill">
+              <div class="progress-thumb"></div>
+            </div>
+          </div>
+          <span class="time-label" id="time-total">0:00</span>
+        </div>
+      </div>
+
+      <!-- VOLUME -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+        <div class="vol-up" id="vol-up">+</div>
+        <div class="vol-bar-track">
+          <div class="vol-bar-fill" id="vol-bar"></div>
+        </div>
+        <div class="vol-down" id="vol-down">−</div>
+      </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="controls-row">
+      <button class="ctrl-btn play-btn" id="btn-play" title="Play/Pause">&#9654;</button>
+      <button class="ctrl-btn" id="btn-stop" title="Stop">&#9632;</button>
+      <button class="ctrl-btn" id="btn-prev" title="Previous">&#9664;&#9664;</button>
+      <button class="ctrl-btn" id="btn-next" title="Next">&#9654;&#9654;</button>
+      <button class="ctrl-btn" id="btn-repeat" title="Repeat" style="font-size:13px;">&#8635;</button>
+    </div>
+
+  </div>
+
+  <!-- PLAYLIST -->
+  <div class="playlist-section">
+    <div class="playlist-titlebar">
+      <span class="playlist-title-text">♫ Playlist</span>
+      <div class="win-btns">
+        <div class="win-btn" style="font-size:8px;">_</div>
+        <div class="win-btn" style="font-size:8px;">□</div>
+      </div>
+    </div>
+    <div class="playlist-inner" id="playlist-inner">
+      <div class="loading-msg">Loading tracks<span class="blink">...</span></div>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <div class="status-panel" id="status-text">Ready</div>
+    <div class="status-panel" style="max-width:60px;text-align:center;" id="status-track">01</div>
+  </div>
+
+</div>
+
+<script src="https://w.soundcloud.com/player/api.js"></script>
+<script>
+const SOUNDCLOUD_URL = "https://soundcloud.com/smita-das-537591127/sets/portfolio?si=a36070ec894b42ef979fd657cc00d29e&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing";
+
+const iframe = document.getElementById('sc-iframe');
+iframe.src = "https://w.soundcloud.com/player/?url=" + encodeURIComponent(SOUNDCLOUD_URL) +
+  "&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false";
+
+const widget = SC.Widget(iframe);
+
+let tracks       = [];
+let currentIndex = 0;
+let isPlaying    = false;
+let repeatMode   = false;
+let duration     = 0;
+let volume       = 80;
+
+const $play       = document.getElementById('btn-play');
+const $pfill      = document.getElementById('progress-fill');
+const $ptrack     = document.getElementById('progress-track');
+const $pl         = document.getElementById('playlist-inner');
+const $fieldArtist= document.getElementById('field-artist');
+const $fieldTitle = document.getElementById('field-title');
+const $timeCur    = document.getElementById('time-current');
+const $timeTotal  = document.getElementById('time-total');
+const $disc       = document.getElementById('disc-img');
+const $statusText = document.getElementById('status-text');
+const $statusTrack= document.getElementById('status-track');
+const $volBar     = document.getElementById('vol-bar');
+
+function fmtTime(ms) {
+  const s = Math.floor(ms / 1000);
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+
+function setVolBar() {
+  $volBar.style.height = volume + '%';
+}
+
+function setPlaying(state) {
+  isPlaying = state;
+  $play.innerHTML = isPlaying ? '&#9646;&#9646;' : '&#9654;';
+  $disc.classList.toggle('disc-spinning', isPlaying);
+  $statusText.textContent = isPlaying ? 'Playing...' : 'Paused';
+}
+
+function parseTitle(raw) {
+  if (!raw) return { artist: '—', title: '—' };
+  const parts = raw.split(' - ');
+  if (parts.length >= 2) return { artist: parts[0].trim(), title: parts.slice(1).join(' - ').trim() };
+  return { artist: '—', title: raw };
+}
+
+function updateTrackDisplay(i) {
+  currentIndex = i;
+  const t = tracks[i];
+  if (!t) return;
+  const parsed = parseTitle(t.title);
+  $fieldArtist.textContent = parsed.artist;
+  $fieldTitle.innerHTML    = parsed.title + '<span class="blink">_</span>';
+  duration = t.duration || 0;
+  $timeTotal.textContent   = fmtTime(duration);
+  $statusTrack.textContent = String(i + 1).padStart(2, '0');
+  $statusText.textContent  = 'Track ' + (i + 1) + ' of ' + tracks.length;
+  document.querySelectorAll('.playlist-item').forEach((el, idx) => el.classList.toggle('active', idx === i));
+  const active = document.querySelector('.playlist-item.active');
+  if (active) active.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+function buildPlaylist() {
+  $pl.innerHTML = '';
+  tracks.forEach((t, i) => {
+    const div = document.createElement('div');
+    div.className = 'playlist-item' + (i === 0 ? ' active' : '');
+    div.innerHTML = '<span class="pl-num">' + (i + 1) + '.</span>' +
+                    '<span class="pl-title">' + t.title + '</span>' +
+                    '<span class="pl-dur">' + fmtTime(t.duration || 0) + '</span>';
+    div.addEventListener('click', () => { widget.skip(i); setTimeout(() => widget.play(), 150); });
+    $pl.appendChild(div);
+  });
+}
+
+widget.bind(SC.Widget.Events.READY, function () {
+  widget.getSounds(function (sounds) {
+    tracks = sounds.map(s => ({ title: s.title || 'Unknown', duration: s.duration || 0 }));
+    buildPlaylist();
+    if (tracks.length) updateTrackDisplay(0);
+  });
+  widget.setVolume(volume);
+  setVolBar();
+});
+
+widget.bind(SC.Widget.Events.PLAY, function () {
+  setPlaying(true);
+  widget.getCurrentSoundIndex(function (i) { updateTrackDisplay(i); });
+});
+
+widget.bind(SC.Widget.Events.PAUSE,  function () { setPlaying(false); });
+
+widget.bind(SC.Widget.Events.FINISH, function () {
+  if (repeatMode) { widget.seekTo(0); widget.play(); }
+  else { setPlaying(false); $pfill.style.width = '0%'; $timeCur.textContent = '0:00'; }
+});
+
+widget.bind(SC.Widget.Events.PLAY_PROGRESS, function (data) {
+  if (!data.duration) return;
+  $pfill.style.width     = Math.min((data.currentPosition / data.duration) * 100, 100) + '%';
+  $timeCur.textContent   = fmtTime(data.currentPosition);
+  duration = data.duration;
+});
+
+$play.addEventListener('click', () => { isPlaying ? widget.pause() : widget.play(); });
+
+document.getElementById('btn-stop').addEventListener('click', () => {
+  widget.pause(); widget.seekTo(0);
+  $pfill.style.width = '0%'; $timeCur.textContent = '0:00';
+  setPlaying(false);
+});
+
+document.getElementById('btn-prev').addEventListener('click', () => {
+  const prev = currentIndex > 0 ? currentIndex - 1 : tracks.length - 1;
+  widget.skip(prev); setTimeout(() => widget.play(), 150);
+});
+
+document.getElementById('btn-next').addEventListener('click', () => {
+  const next = currentIndex < tracks.length - 1 ? currentIndex + 1 : 0;
+  widget.skip(next); setTimeout(() => widget.play(), 150);
+});
+
+document.getElementById('btn-repeat').addEventListener('click', function () {
+  repeatMode = !repeatMode;
+  this.style.background = repeatMode ? '#0a246a' : '';
+  this.style.color      = repeatMode ? '#fff' : '';
+});
+
+document.getElementById('vol-up').addEventListener('click', () => {
+  volume = Math.min(100, volume + 10);
+  widget.setVolume(volume); setVolBar();
+});
+
+document.getElementById('vol-down').addEventListener('click', () => {
+  volume = Math.max(0, volume - 10);
+  widget.setVolume(volume); setVolBar();
+});
+
+$ptrack.addEventListener('click', function (e) {
+  if (!duration) return;
+  const pct = (e.clientX - $ptrack.getBoundingClientRect().left) / $ptrack.offsetWidth;
+  widget.seekTo(Math.floor(pct * duration));
+  $pfill.style.width = (pct * 100) + '%';
+});
+</script>
+</body>
+</html>

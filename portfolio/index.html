@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>smita's corner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="room.jpg" fetchpriority="high">
+<style>
+  :root {
+    --neon: #ff5fc8;               /* main neon pink */
+    --neon-soft: #ff9bdc;          /* lighter pink for the LED core */
+    --neon-rgb: 255, 95, 200;      /* same pink as r,g,b for glows */
+    --screen-dark: #14040f;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%; overflow: hidden; background: #0a0505;
+    font-family: 'VT323', 'Courier New', monospace;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ---------- positioned by JS so the photo always "covers" the window ---------- */
+  #wrap { position: absolute; transform-origin: var(--cx) var(--cy); will-change: transform; }
+  #scene {
+    position: absolute; inset: 0;
+    transform-origin: var(--cx) var(--cy);
+    animation: settle 7s cubic-bezier(.2,.7,.2,1) both;
+  }
+  #room { position: absolute; inset: 0; width: 100%; height: 100%; display: block; user-select: none; -webkit-user-drag: none; }
+  @keyframes settle { from { transform: scale(1.09); } to { transform: scale(1); } }
+
+  /* ---------- lamp glow (top right) ---------- */
+  .lamp {
+    position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen;
+    background: radial-gradient(ellipse 22% 16% at 90% 25%, rgba(255,214,170,.38), transparent 70%);
+    animation: lamp 6s infinite;
+  }
+  @keyframes lamp {
+    0%,100% { opacity: 1; } 12% { opacity: .9; } 13% { opacity: 1; }
+    47% { opacity: .96; } 48% { opacity: .62; } 49.5% { opacity: 1; } 50.5% { opacity: .8; } 52% { opacity: 1; }
+    83% { opacity: .93; }
+  }
+
+  /* ---------- screen light spilling onto the room ---------- */
+  .spill {
+    position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: 0;
+    background:
+      radial-gradient(ellipse 34% 28% at var(--cx) var(--cy), rgba(var(--neon-rgb), .24), transparent 75%),
+      radial-gradient(ellipse 34% 12% at 50% 88%, rgba(var(--neon-rgb), .24), transparent 75%);
+    transition: opacity 1.6s ease .4s;
+  }
+  .on-state .spill { opacity: 1; animation: spillPulse 4s 2s infinite; }
+  @keyframes spillPulse { 0%,100% { opacity: 1; } 50% { opacity: .82; } 53% { opacity: 1; } }
+
+  /* ---------- the screen ---------- */
+  .screen {
+    position: absolute; left: var(--screen-x); top: var(--screen-y);
+    width: var(--screen-w); height: var(--screen-h);
+    border-radius: calc(var(--u) * 2) / calc(var(--u) * 1.8);
+    overflow: hidden; pointer-events: none; cursor: pointer;
+  }
+  .screen.on { pointer-events: auto; }
+  .crt {
+    position: absolute; inset: 0; display: none;
+    background: radial-gradient(ellipse at center, #2b0b24 0%, #170512 70%, #0b020a 100%);
+    color: var(--neon);
+  }
+  .screen.on .crt { display: block; animation: crtOn 1.3s cubic-bezier(.3,.7,.2,1) both, idle 5s 1.4s infinite; }
+  @keyframes crtOn {
+    0%   { transform: scale(0, .004); filter: brightness(6); }
+    28%  { transform: scale(1, .004); filter: brightness(6); }
+    62%  { transform: scale(1, 1);    filter: brightness(2.6); }
+    72%  { filter: brightness(.6); }
+    82%  { filter: brightness(1.7); }
+    100% { transform: scale(1, 1);    filter: brightness(1); }
+  }
+  @keyframes idle {
+    0%,100% { opacity: 1; } 31% { opacity: .96; } 32% { opacity: 1; }
+    71% { opacity: .93; } 71.5% { opacity: 1; } 90% { opacity: .97; }
+  }
+  .crt.glitch { animation: glitch .32s steps(2) both; }
+  @keyframes glitch {
+    0%   { transform: translateX(0);    filter: brightness(1); }
+    20%  { transform: translateX(-2%) skewX(3deg); filter: brightness(2.4); }
+    40%  { transform: translateX(1.5%); filter: brightness(.35); }
+    60%  { transform: translateX(-.8%) skewX(-2deg); filter: brightness(1.9); }
+    100% { transform: translateX(0);    filter: brightness(1); }
+  }
+  .crt::after { /* scanlines + vignette */
+    content: ''; position: absolute; inset: 0; pointer-events: none;
+    background:
+      repeating-linear-gradient(to bottom, transparent 0 calc(var(--u) * .22), rgba(0,0,0,.24) calc(var(--u) * .22) calc(var(--u) * .44)),
+      radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.55) 100%);
+  }
+  .content {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+    padding: calc(var(--u) * 3);
+  }
+  #line {
+    font-size: calc(var(--u) * 4.5); line-height: 1.12; min-height: 2.3em;
+    display: flex; align-items: center; justify-content: center;
+    text-shadow: 0 0 calc(var(--u) * .5) rgba(var(--neon-rgb), .85), 0 0 calc(var(--u) * 1.6) rgba(var(--neon-rgb), .45);
+  }
+  .cursor {
+    display: inline-block; width: .45em; height: .8em; margin-left: .12em;
+    background: var(--neon); vertical-align: -.05em; animation: blink 1s steps(1) infinite;
+    box-shadow: 0 0 calc(var(--u) * .8) rgba(var(--neon-rgb), .8);
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  #enter {
+    margin-top: calc(var(--u) * 1.6);
+    font: inherit; font-size: calc(var(--u) * 3.4); color: var(--neon);
+    background: transparent; cursor: pointer;
+    border: calc(var(--u) * .28) solid var(--neon);
+    padding: .15em .9em .2em; letter-spacing: .08em;
+    text-shadow: 0 0 calc(var(--u) * .5) rgba(var(--neon-rgb), .9);
+    box-shadow: 0 0 calc(var(--u) * 1.2) rgba(var(--neon-rgb), .4), inset 0 0 calc(var(--u) * 1) rgba(var(--neon-rgb), .18);
+    opacity: 0; pointer-events: none; transform: translateY(calc(var(--u) * .8));
+    transition: opacity .6s, transform .6s, background .15s, color .15s;
+  }
+  #enter.show { opacity: 1; pointer-events: auto; transform: none; animation: nudge 1.6s 1s infinite; }
+  #enter:hover, #enter:focus-visible { background: var(--neon); color: var(--screen-dark); text-shadow: none; outline: none; }
+  @keyframes nudge { 0%,100% { box-shadow: 0 0 calc(var(--u) * 1.2) rgba(var(--neon-rgb), .4); } 50% { box-shadow: 0 0 calc(var(--u) * 2.6) rgba(var(--neon-rgb), .8); } }
+
+  /* ---------- power light ---------- */
+  #led {
+    position: absolute; left: var(--led-x); top: var(--led-y); transform: translate(-50%, -50%);
+    width: max(48px, calc(var(--u) * 5.5)); height: max(48px, calc(var(--u) * 5.5));
+    background: none; border: 0; border-radius: 50%; cursor: pointer;
+    pointer-events: none; z-index: 5;
+  }
+  #led.ready { pointer-events: auto; }
+  #led .dot {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: max(8px, calc(var(--u) * .95)); height: max(8px, calc(var(--u) * .95)); border-radius: 50%;
+    background: var(--neon-soft); opacity: 0;
+    box-shadow: 0 0 calc(var(--u) * 1.2) calc(var(--u) * .35) rgba(var(--neon-rgb), .9), 0 0 calc(var(--u) * 3.5) rgba(var(--neon-rgb), .45);
+  }
+  #led.ready .dot { animation: ledFlicker 3.4s infinite; }
+  #led.solid .dot { animation: none; opacity: 1; }
+  @keyframes ledFlicker {
+    0% { opacity: .12; } 5% { opacity: 1; } 8% { opacity: .08; } 12% { opacity: .9; } 15% { opacity: .15; }
+    38% { opacity: .15; } 41% { opacity: 1; } 44% { opacity: .1; } 46% { opacity: .8; } 49% { opacity: .12; }
+    70% { opacity: .12; } 74% { opacity: 1; } 100% { opacity: .12; }
+  }
+  #led:focus-visible { outline: 2px dashed rgba(var(--neon-rgb), .8); outline-offset: 2px; }
+
+  #hint {
+    position: absolute; left: var(--led-x); top: calc(var(--led-y) + 4.2%); transform: translateX(-50%);
+    font-size: calc(var(--u) * 2.7); letter-spacing: .12em; white-space: nowrap; pointer-events: none;
+    color: #ffe3f3; text-shadow: 0 0 calc(var(--u) * .8) rgba(0,0,0,.9);
+    opacity: 0; transition: opacity 1.2s;
+  }
+  #hint.show { opacity: .85; animation: hintPulse 2.4s infinite; }
+  @keyframes hintPulse { 0%,100% { opacity: .85; } 50% { opacity: .35; } }
+
+  /* ---------- page-level bits ---------- */
+  #curtain { position: fixed; inset: 0; background: #000; z-index: 50; pointer-events: none; opacity: 1; transition: opacity 4s ease-in-out; }
+  #flash   { position: fixed; inset: 0; background: #ffeaf6; z-index: 60; pointer-events: none; opacity: 0; transition: opacity .4s ease-in; }
+  .hud {
+    position: fixed; z-index: 20; font: 20px 'VT323', monospace; letter-spacing: .08em;
+    color: rgba(255,235,245,.65); background: none; border: 0; text-decoration: none; cursor: pointer;
+    padding: 10px 14px; text-shadow: 0 1px 6px #000;
+  }
+  .hud:hover { color: #fff; }
+  #sound { left: 6px; top: 4px; }
+  #skip  { right: 6px; bottom: 4px; }
+
+  /* ---------- debug: open intro.html?debug to line things up ---------- */
+  .debug .screen { outline: 2px dashed cyan; pointer-events: none; }
+  .debug #led    { outline: 2px dashed lime; }
+
+  @media (prefers-reduced-motion: reduce) {
+    #scene, .lamp, .spill, .crt, #led .dot, #hint, #enter { animation-duration: .01s !important; animation-iteration-count: 1 !important; }
+    #curtain { transition-duration: .6s; }
+  }
+</style>
+</head>
+<body>
+
+<div id="wrap">
+  <div id="scene">
+    <img id="room" src="room.jpg" alt="A cluttered bedroom desk covered in band posters, with an old computer monitor" draggable="false">
+    <div class="lamp"></div>
+    <div class="spill"></div>
+
+    <div class="screen" id="screen" aria-live="polite">
+      <div class="crt" id="crt">
+        <div class="content">
+          <p id="line"><span id="txt"></span><span class="cursor"></span></p>
+          <button id="enter" type="button">&#9654; ENTER</button>
+        </div>
+      </div>
+    </div>
+
+    <button id="led" type="button" aria-label="Press the power light to turn on the computer"><span class="dot"></span></button>
+    <div id="hint">&#9650; press the light</div>
+  </div>
+</div>
+
+<div id="curtain"></div>
+<div id="flash"></div>
+<button class="hud" id="sound" type="button" aria-pressed="true">&#9835; sound: on</button>
+<a class="hud" id="skip" href="index1.html">skip intro &#9656;</a>
+
+<script>
+(() => {
+  /* ================= TUNING KNOBS (all in % of room.jpg) =================
+     Open intro.html?debug to see the outlines while you nudge these.        */
+  const CFG = {
+    screen: { x: 28.9, y: 38.8, w: 43.5, h: 31.9 },   // the black monitor screen
+    led:    { x: 54.6, y: 73.0 },                      // the power light on the bezel
+  };
+  const TARGET  = 'index1.html';          // where "ENTER" goes
+  const LINES   = ["hey, this is smita.", "welcome to my corner of the world.", "jump in, have fun :)"];
+  const TYPE_MS = 58, HOLD_MS = 1500;
+  /* ===================================================================== */
+
+  const $ = id => document.getElementById(id);
+  const root = document.documentElement;
+  const wrap = $('wrap'), room = $('room'), screen = $('screen'), crt = $('crt'),
+        txt = $('txt'), enter = $('enter'), led = $('led'), hint = $('hint'),
+        curtain = $('curtain'), flash = $('flash'), soundBtn = $('sound'), skip = $('skip');
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const wait = ms => new Promise(r => setTimeout(r, ms));
+  if (location.search.includes('debug')) document.body.classList.add('debug');
+
+  // centre of the screen, as a fraction of the photo (used for zoom + centring)
+  const CX = (CFG.screen.x + CFG.screen.w / 2) / 100;
+  const CY = (CFG.screen.y + CFG.screen.h / 2) / 100;
+  const set = (k, v) => root.style.setProperty(k, v);
+  set('--screen-x', CFG.screen.x + '%'); set('--screen-y', CFG.screen.y + '%');
+  set('--screen-w', CFG.screen.w + '%'); set('--screen-h', CFG.screen.h + '%');
+  set('--led-x', CFG.led.x + '%');       set('--led-y', CFG.led.y + '%');
+  set('--cx', (CX * 100) + '%');         set('--cy', (CY * 100) + '%');
+
+  const markSeen = () => { try { sessionStorage.setItem('introSeen', '1'); } catch (e) {} };
+  skip.addEventListener('click', markSeen);
+
+  /* ---------------- layout: photo always covers the window, screen stays centred ---------------- */
+  let ratio = 1199 / 1185, geo = {};
+  function layout() {
+    const vw = innerWidth, vh = innerHeight;
+    let W = Math.max(vw, vh * ratio);
+    if ((W / ratio) * 0.5 > vh) W = vh * 2 * ratio;     // very wide + short windows: keep the power light in view
+    const H = W / ratio;
+    const place = (view, size, centre) => size <= view ? (view - size) / 2
+                : Math.min(0, Math.max(view - size, view / 2 - centre));
+    const L = place(vw, W, CX * W), T = place(vh, H, CY * H);
+    Object.assign(wrap.style, { width: W + 'px', height: H + 'px', left: L + 'px', top: T + 'px' });
+    wrap.style.setProperty('--u', (W / 100) + 'px');
+    geo = { W, H, L, T };
+  }
+  addEventListener('resize', layout);
+
+  /* ---------------- sound (only starts after the first click, so browsers allow it) ---------------- */
+  let ac, soundOn = true, humGain;
+  const audio = () => {
+    if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+    if (ac && ac.state === 'suspended') ac.resume();
+    return ac;
+  };
+  function powerSound() {
+    const a = audio(); if (!a) return; const t = a.currentTime;
+    // relay thunk
+    const o = a.createOscillator(), g = a.createGain();
+    o.type = 'sine'; o.frequency.setValueAtTime(95, t); o.frequency.exponentialRampToValueAtTime(38, t + .25);
+    g.gain.setValueAtTime(.55, t); g.gain.exponentialRampToValueAtTime(.001, t + .4);
+    o.connect(g).connect(a.destination); o.start(t); o.stop(t + .45);
+    // CRT static burst
+    const len = a.sampleRate * .35, buf = a.createBuffer(1, len, a.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    const n = a.createBufferSource(), hp = a.createBiquadFilter(), ng = a.createGain();
+    n.buffer = buf; hp.type = 'highpass'; hp.frequency.value = 2500; ng.gain.value = .12;
+    n.connect(hp).connect(ng).connect(a.destination); n.start(t + .1);
+    // low monitor hum that stays on
+    const h = a.createOscillator(), lp = a.createBiquadFilter();
+    humGain = a.createGain();
+    h.type = 'sawtooth'; h.frequency.value = 60; lp.type = 'lowpass'; lp.frequency.value = 220;
+    humGain.gain.setValueAtTime(0, t + .2); humGain.gain.linearRampToValueAtTime(soundOn ? .035 : 0, t + 1.2);
+    h.connect(lp).connect(humGain).connect(a.destination); h.start(t + .2);
+  }
+  function blip() {
+    if (!soundOn || !ac) return; const t = ac.currentTime;
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = 'square'; o.frequency.value = 520 + Math.random() * 140;
+    g.gain.setValueAtTime(.022, t); g.gain.exponentialRampToValueAtTime(.0005, t + .05);
+    o.connect(g).connect(ac.destination); o.start(t); o.stop(t + .06);
+  }
+  soundBtn.addEventListener('click', () => {
+    soundOn = !soundOn;
+    soundBtn.innerHTML = '&#9835; sound: ' + (soundOn ? 'on' : 'off');
+    soundBtn.setAttribute('aria-pressed', soundOn);
+    if (humGain && ac) humGain.gain.setTargetAtTime(soundOn ? .035 : 0, ac.currentTime, .1);
+  });
+
+  /* ---------------- typewriter ("game message") engine ---------------- */
+  let tap = false;
+  screen.addEventListener('pointerdown', () => { tap = true; });
+
+  async function typeLine(text) {
+    txt.textContent = ''; tap = false;
+    for (let i = 0; i < text.length; i++) {
+      if (tap) { tap = false; txt.textContent = text; return; }   // tap = finish line instantly
+      txt.textContent += text[i];
+      if (text[i] !== ' ') blip();
+      await wait(TYPE_MS + (',.'.includes(text[i]) ? 220 : 0));
+    }
+  }
+  async function hold(ms) {
+    tap = false;
+    const end = performance.now() + ms;
+    while (performance.now() < end) { if (tap) { tap = false; return; } await wait(30); }  // tap = next line
+  }
+  async function glitch() {
+    crt.classList.remove('glitch'); void crt.offsetWidth; crt.classList.add('glitch');
+    await wait(320); crt.classList.remove('glitch');
+  }
+
+  /* ---------------- sequence ---------------- */
+  let started = false;
+  async function powerOn() {
+    if (started) return; started = true;
+    led.classList.add('solid'); hint.classList.remove('show');
+    wrap.classList.add('on-state');
+    powerSound();
+    screen.classList.add('on');
+    await wait(reduced ? 300 : 1500);               // let the CRT warm up
+    for (let i = 0; i < LINES.length; i++) {
+      await typeLine(LINES[i]);
+      if (i < LINES.length - 1) { await hold(HOLD_MS); await glitch(); txt.textContent = ''; await wait(250); }
+    }
+    enter.classList.add('show'); enter.focus({ preventScroll: true });
+  }
+  led.addEventListener('click', powerOn);
+
+  let leaving = false;
+  async function dive() {
+    if (leaving) return; leaving = true; markSeen();
+    enter.classList.remove('show');
+    if (humGain && ac) humGain.gain.setTargetAtTime(0, ac.currentTime, .4);
+    if (!reduced) {
+      const vw = innerWidth, vh = innerHeight, { W, H, L, T } = geo;
+      const cx = L + CX * W, cy = T + CY * H;
+      const s = Math.max(vw / ((CFG.screen.w / 100) * W), vh / ((CFG.screen.h / 100) * H)) * 1.08;
+      wrap.style.transition = 'transform 1.9s cubic-bezier(.65,0,.3,1)';
+      wrap.style.transform = `translate(${vw / 2 - cx}px, ${vh / 2 - cy}px) scale(${s})`;
+      await wait(1500);
+    }
+    flash.style.opacity = 1;
+    await wait(420);
+    location.href = TARGET;
+  }
+  enter.addEventListener('click', dive);
+  addEventListener('keydown', e => { if (e.key === 'Enter' && enter.classList.contains('show')) dive(); });
+
+  /* ---------------- start: wait for the photo, then slowly open the room ---------------- */
+  function begin() {
+    if (room.naturalWidth) ratio = room.naturalWidth / room.naturalHeight;
+    layout();
+    requestAnimationFrame(() => requestAnimationFrame(() => { curtain.style.opacity = 0; }));
+    setTimeout(() => led.classList.add('ready'), reduced ? 600 : 4200);
+    setTimeout(() => { if (!started) hint.classList.add('show'); }, reduced ? 1200 : 7500);
+  }
+  layout();
+  if (room.complete) begin(); else { room.addEventListener('load', begin); room.addEventListener('error', begin); }
+  // coming back via the browser's back button
+  addEventListener('pageshow', e => { if (e.persisted) location.reload(); });
+})();
+</script>
+</body>
+</html>

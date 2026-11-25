@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pixel Portfolio ✿</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&family=Nunito:wght@400;600;700&display=swap');
+
+:root {
+  --sky: #7ec8e3;
+  --sky-light: #b8e4f0;
+  --grass: #6dbf6b;
+  --grass-dark: #4a9e48;
+  --ground: #c8834a;
+  --ground-dark: #a0632e;
+  --brick: #d4845a;
+  --cloud: #f0f4ff;
+  --leaf: #8dd87a;
+  --pixel-font: 'Press Start 2P', monospace;
+  --vt323: 'VT323', monospace;
+  --body-font: 'Nunito', sans-serif;
+  --panel-bg: rgba(255,248,235,0.92);
+  --panel-border: #e8a87c;
+  --accent: #f5a623;
+  --pink: #f7b8c8;
+  --purple: #b8a9e8;
+  --text-dark: #3d2c1e;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+html, body {
+  width:100%; height:100%;
+  overflow:hidden;
+  background: var(--sky);
+  font-family: var(--body-font);
+  cursor: none;
+}
+
+/* ── CUSTOM CURSOR ── */
+#cursor {
+  position:fixed; width:16px; height:16px;
+  pointer-events:none; z-index:9999;
+  image-rendering: pixelated;
+}
+#cursor::before {
+  content:'✿';
+  font-size:18px;
+  color: var(--accent);
+  filter: drop-shadow(1px 1px 0 #fff);
+}
+
+/* ── LANDING ── */
+#landing {
+  position:fixed; inset:0; z-index:800;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  background: linear-gradient(180deg, #5bb8d4 0%, #7ec8e3 40%, #a8dba8 70%, #6dbf6b 100%);
+  transition: opacity 0.8s ease;
+}
+#landing.hide { opacity:0; pointer-events:none; }
+
+.land-bg-stars {
+  position:absolute; inset:0; overflow:hidden;
+}
+.star {
+  position:absolute;
+  width:4px; height:4px;
+  background:#fff;
+  image-rendering:pixelated;
+  animation: twinkle 2s infinite alternate;
+}
+
+@keyframes twinkle { 0%{opacity:0.3} 100%{opacity:1} }
+
+.land-title {
+  font-family: var(--pixel-font);
+  font-size: clamp(12px, 3vw, 22px);
+  color:#fff;
+  text-shadow: 3px 3px 0 #c8834a, 6px 6px 0 rgba(0,0,0,0.2);
+  text-align:center;
+  line-height:2;
+  margin-bottom: 8px;
+  animation: float 3s ease-in-out infinite;
+}
+.land-sub {
+  font-family: var(--vt323);
+  font-size: clamp(20px, 4vw, 32px);
+  color: #ffe8b0;
+  text-align:center;
+  margin-bottom:40px;
+  letter-spacing:2px;
+}
+
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+.start-btn {
+  font-family: var(--pixel-font);
+  font-size: clamp(9px,2vw,14px);
+  color: var(--text-dark);
+  background: var(--accent);
+  border: none;
+  padding: 16px 32px;
+  cursor: pointer;
+  image-rendering: pixelated;
+  box-shadow: 4px 4px 0 #b07820, 0 0 0 4px #fff, 0 0 0 6px #b07820;
+  transition: transform 0.1s, box-shadow 0.1s;
+  animation: btnPulse 1.5s infinite alternate;
+  position:relative;
+}
+.start-btn:hover {
+  transform: translate(-2px,-2px);
+  box-shadow: 6px 6px 0 #b07820, 0 0 0 4px #fff, 0 0 0 6px #b07820;
+}
+.start-btn:active { transform:translate(2px,2px); box-shadow:2px 2px 0 #b07820, 0 0 0 4px #fff, 0 0 0 6px #b07820; }
+
+@keyframes btnPulse {
+  0% { filter: brightness(1); }
+  100% { filter: brightness(1.15); }
+}
+
+.press-hint {
+  font-family: var(--vt323);
+  font-size:22px;
+  color:rgba(255,255,255,0.7);
+  margin-top:20px;
+  animation: blink 1s step-end infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* ── GAME WORLD ── */
+#game {
+  position:fixed; inset:0; z-index:100;
+  overflow:hidden;
+}
+
+/* SKY */
+#sky {
+  position:absolute; top:0; left:0; right:0;
+  height:68%;
+  background: linear-gradient(180deg, #5bb8d4 0%, #8dd6ec 60%, #b8eecc 100%);
+}
+
+/* CLOUD LAYER */
+#clouds {
+  position:absolute; top:0; left:0; right:0; height:65%;
+  pointer-events:none;
+}
+.cloud {
+  position:absolute;
+  background: var(--cloud);
+  border-radius:50px;
+  image-rendering:pixelated;
+  filter: drop-shadow(0 4px 8px rgba(180,220,255,0.4));
+}
+.cloud::before, .cloud::after {
+  content:''; position:absolute;
+  background: var(--cloud);
+  border-radius:50%;
+}
+
+/* FAR BG hills */
+#hills-far {
+  position:absolute;
+  bottom: 32%;
+  left:0; right:0; height:80px;
+  pointer-events:none;
+}
+.hill {
+  position:absolute;
+  bottom:0;
+  border-radius:50% 50% 0 0;
+  background: #a8dba8;
+  opacity:0.7;
+}
+
+/* MIDGROUND trees/bushes */
+#midground {
+  position:absolute;
+  bottom: 30%;
+  left:0; right:0; height:80px;
+  pointer-events:none;
+}
+
+/* GROUND */
+#ground-container {
+  position:absolute;
+  bottom:0; left:0; right:0;
+  height:32%;
+}
+#grass-top {
+  position:absolute;
+  top:0; left:0; right:0;
+  height:28px;
+  overflow:hidden;
+}
+#ground-body {
+  position:absolute;
+  top:22px; left:0; right:0; bottom:0;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--brick) 0px, var(--brick) 39px,
+    var(--ground-dark) 39px, var(--ground-dark) 40px
+  );
+}
+#ground-body::before {
+  content:'';
+  position:absolute; left:0; right:0; top:0;
+  height:8px;
+  background: var(--ground);
+}
+
+/* Ground bricks pattern */
+.brick-row {
+  position:absolute;
+  left:0; right:0; height:20px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--brick) 0, var(--brick) 38px,
+    var(--ground-dark) 38px, var(--ground-dark) 40px
+  );
+}
+.brick-row:nth-child(even) {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--brick) 0, var(--brick) 18px,
+    var(--ground-dark) 18px, var(--ground-dark) 20px,
+    var(--brick) 20px, var(--brick) 58px,
+    var(--ground-dark) 58px, var(--ground-dark) 60px
+  );
+}
+
+/* Grass tiles scrolling */
+.grass-strip {
+  position:absolute;
+  top:0; height:28px;
+  display:flex; align-items:flex-end;
+}
+.grass-tile {
+  width:16px; height:24px;
+  position:relative;
+  flex-shrink:0;
+}
+
+/* CHARACTER */
+#character {
+  position:absolute;
+  bottom: 32%;
+  left: 22%;
+  width: 48px; height: 72px;
+  z-index:200;
+  image-rendering: pixelated;
+  transform-origin: bottom center;
+  transition: transform 0.1s;
+}
+#char-canvas {
+  width:48px; height:72px;
+  image-rendering: pixelated;
+}
+
+/* PARTICLES */
+#particles {
+  position:absolute; inset:0;
+  pointer-events:none; z-index:150;
+}
+.particle {
+  position:absolute;
+  pointer-events:none;
+  border-radius:50%;
+  animation: particleFly linear forwards;
+}
+@keyframes particleFly {
+  0% { opacity:1; transform:translate(0,0) scale(1); }
+  100% { opacity:0; transform:translate(var(--dx),var(--dy)) scale(0); }
+}
+
+/* Dust particles */
+.dust {
+  position:absolute; bottom:32%;
+  width:6px; height:6px;
+  border-radius:50%;
+  background: rgba(200,160,100,0.7);
+  pointer-events:none;
+  animation: dustRise 0.6s ease-out forwards;
+}
+@keyframes dustRise {
+  0%   { opacity:0.8; transform:scale(1) translate(0,0); }
+  100% { opacity:0;   transform:scale(0.2) translate(var(--dx),-20px); }
+}
+
+/* FLOATING LEAVES */
+.leaf-particle {
+  position:absolute;
+  font-size:14px;
+  pointer-events:none;
+  animation: leafFloat linear forwards;
+  z-index:160;
+}
+@keyframes leafFloat {
+  0%   { opacity:1; transform:translate(0,0) rotate(0deg); }
+  100% { opacity:0; transform:translate(var(--lx), var(--ly)) rotate(360deg); }
+}
+
+/* ── HUD ── */
+#hud {
+  position:fixed; top:16px; left:0; right:0;
+  z-index:500;
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 0 20px;
+  pointer-events:none;
+}
+.hud-name {
+  font-family: var(--pixel-font);
+  font-size: clamp(7px,1.5vw,11px);
+  color:#fff;
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.4);
+  background: rgba(0,0,0,0.25);
+  padding:8px 14px;
+  border-radius:4px;
+  border:2px solid rgba(255,255,255,0.3);
+}
+.hud-progress {
+  display:flex; align-items:center; gap:8px;
+}
+.hud-progress-label {
+  font-family: var(--pixel-font);
+  font-size: clamp(5px,1vw,8px);
+  color:#fff;
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
+}
+.progress-bar-wrap {
+  width:120px; height:16px;
+  background: rgba(0,0,0,0.3);
+  border:2px solid rgba(255,255,255,0.4);
+  border-radius:3px;
+  overflow:hidden;
+}
+.progress-bar-fill {
+  height:100%;
+  background: linear-gradient(90deg, #6dbf6b, #a8e89c);
+  transition: width 1s ease;
+  border-right:2px solid #4a9e48;
+}
+.hud-section-num {
+  font-family: var(--pixel-font);
+  font-size: clamp(6px,1vw,9px);
+  color:#ffe8b0;
+  text-shadow:1px 1px 0 rgba(0,0,0,0.4);
+}
+
+/* ── SECTION CARD ── */
+#section-card {
+  position:fixed;
+  bottom: 38%;
+  left:50%;
+  transform: translateX(-50%) translateY(30px);
+  width: min(520px, 92vw);
+  z-index:400;
+  opacity:0;
+  pointer-events:none;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+#section-card.visible {
+  opacity:1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events:auto;
+}
+
+.card-inner {
+  background: var(--panel-bg);
+  border: 3px solid var(--panel-border);
+  border-radius: 8px;
+  box-shadow: 6px 6px 0 rgba(180,100,50,0.3), 0 0 0 1px rgba(255,255,255,0.8) inset;
+  padding: 20px 24px 16px;
+  backdrop-filter: blur(6px);
+  position:relative;
+}
+.card-inner::before {
+  content:'';
+  position:absolute; top:6px; left:6px; right:6px; bottom:6px;
+  border:1px dashed rgba(230,160,80,0.4);
+  border-radius:5px;
+  pointer-events:none;
+}
+
+.card-header {
+  display:flex; align-items:center; gap:10px;
+  margin-bottom:12px;
+  border-bottom:2px solid rgba(230,160,80,0.3);
+  padding-bottom:10px;
+}
+.card-icon {
+  font-size:24px;
+  image-rendering: pixelated;
+}
+.card-title {
+  font-family: var(--pixel-font);
+  font-size: clamp(9px,2vw,13px);
+  color: var(--text-dark);
+  text-shadow: 2px 2px 0 rgba(200,150,100,0.4);
+  flex:1;
+}
+.card-num {
+  font-family: var(--vt323);
+  font-size:22px;
+  color: var(--panel-border);
+  background: rgba(230,160,80,0.15);
+  padding:2px 8px;
+  border-radius:4px;
+  border:1px solid var(--panel-border);
+}
+
+.card-body {
+  font-family: var(--body-font);
+  font-size: clamp(13px,2vw,16px);
+  color: #5a3e2c;
+  line-height:1.7;
+  min-height:60px;
+}
+.card-body strong { color: var(--text-dark); }
+
+.card-footer {
+  margin-top:12px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.continue-hint {
+  font-family: var(--pixel-font);
+  font-size: clamp(6px,1.2vw,9px);
+  color: var(--panel-border);
+  animation: blink 1.2s step-end infinite;
+}
+.card-dots {
+  display:flex; gap:5px;
+}
+.card-dot {
+  width:8px; height:8px;
+  border-radius:2px;
+  background: rgba(230,160,80,0.3);
+  border:1px solid rgba(230,160,80,0.5);
+  transition: background 0.3s;
+}
+.card-dot.active { background: var(--accent); }
+
+/* Skill bars */
+.skill-bar-wrap { margin:5px 0; }
+.skill-label {
+  font-family: var(--pixel-font);
+  font-size: clamp(5px,1vw,8px);
+  color:#5a3e2c;
+  margin-bottom:3px;
+}
+.skill-bar-bg {
+  height:12px;
+  background: rgba(200,180,160,0.3);
+  border:2px solid rgba(230,160,80,0.4);
+  border-radius:3px;
+  overflow:hidden;
+}
+.skill-bar-fill {
+  height:100%;
+  background: linear-gradient(90deg, #6dbf6b, #a8e89c);
+  width:0;
+  transition: width 1.2s ease;
+  border-right:2px solid #4a9e48;
+}
+
+/* Project cards */
+.proj-cards { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+.proj-chip {
+  background: rgba(120,180,240,0.2);
+  border:2px solid rgba(100,160,220,0.4);
+  border-radius:6px;
+  padding:4px 10px;
+  font-size:13px;
+  color:#2c4a6e;
+  font-weight:600;
+}
+
+/* Tags */
+.tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+.tag {
+  padding:2px 10px;
+  border-radius:4px;
+  font-size:13px;
+  font-weight:700;
+  border:2px solid;
+}
+.tag-green  { background:rgba(109,191,107,0.2); border-color:#6dbf6b; color:#2a7a28; }
+.tag-purple { background:rgba(184,169,232,0.2); border-color:#b8a9e8; color:#5040a0; }
+.tag-pink   { background:rgba(247,184,200,0.2); border-color:#f7b8c8; color:#b03060; }
+.tag-orange { background:rgba(245,166,35,0.2);  border-color:var(--accent); color:#8a5000; }
+
+/* ── SCREEN SHAKE ── */
+@keyframes screenShake {
+  0%,100%{transform:translate(0,0)}
+  25%{transform:translate(-2px,1px)}
+  50%{transform:translate(2px,-1px)}
+  75%{transform:translate(-1px,2px)}
+}
+.shake { animation: screenShake 0.3s ease; }
+
+/* ── LANDING PIXEL CHARACTER ── */
+.land-char-wrap {
+  position:relative; margin-bottom:24px;
+  display:flex; justify-content:center;
+}
+#land-char-canvas {
+  width:80px; height:120px;
+  image-rendering:pixelated;
+  animation: float 2.5s ease-in-out infinite;
+}
+
+/* ── MOBILE ── */
+@media(max-width:600px){
+  #section-card { bottom:35%; }
+  #hud { top:8px; }
+  .progress-bar-wrap { width:80px; }
+}
+</style>
+</head>
+<body>
+
+<div id="cursor">✿</div>
+
+<!-- ═══════════════════ LANDING ═══════════════════ -->
+<div id="landing">
+  <div class="land-bg-stars" id="landStars"></div>
+
+  <div class="land-char-wrap">
+    <canvas id="land-char-canvas" width="40" height="60"></canvas>
+  </div>
+
+  <div class="land-title">✿ Portfolio Adventure ✿</div>
+  <div class="land-sub">~ A Pixel Journey Through My World ~</div>
+
+  <button class="start-btn" id="startBtn">▶ PRESS START</button>
+  <div class="press-hint">▼ Click to Begin ▼</div>
+</div>
+
+<!-- ═══════════════════ GAME WORLD ═══════════════════ -->
+<div id="game" style="display:none">
+
+  <!-- SKY -->
+  <div id="sky"></div>
+
+  <!-- CLOUDS -->
+  <div id="clouds"></div>
+
+  <!-- FAR HILLS -->
+  <div id="hills-far"></div>
+
+  <!-- MIDGROUND -->
+  <div id="midground"></div>
+
+  <!-- GROUND -->
+  <div id="ground-container">
+    <div id="grass-top"></div>
+    <div id="ground-body"></div>
+  </div>
+
+  <!-- PARTICLES -->
+  <div id="particles"></div>
+
+  <!-- CHARACTER -->
+  <div id="character">
+    <canvas id="char-canvas" width="48" height="72"></canvas>
+  </div>
+
+  <!-- SECTION CARD -->
+  <div id="section-card">
+    <div class="card-inner">
+      <div class="card-header">
+        <span class="card-icon" id="cardIcon">✿</span>
+        <span class="card-title" id="cardTitle">ABOUT ME</span>
+        <span class="card-num" id="cardNum">01/06</span>
+      </div>
+      <div class="card-body" id="cardBody"></div>
+      <div class="card-footer">
+        <span class="continue-hint" id="continueHint">▶ CLICK TO CONTINUE</span>
+        <div class="card-dots" id="cardDots"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-name">✿ My Portfolio</div>
+    <div class="hud-progress">
+      <span class="hud-progress-label">LEVEL</span>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+      </div>
+      <span class="hud-section-num" id="sectionLabel">0/6</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//  PIXEL ART RENDERER
+// ═══════════════════════════════════════════
+
+const P = (ctx, scale, pixels, palette) => {
+  pixels.forEach((row, y) => {
+    row.forEach((col, x) => {
+      if (col === 0) return;
+      ctx.fillStyle = palette[col];
+      ctx.fillRect(x*scale, y*scale, scale, scale);
+    });
+  });
+};
+
+// ── GIRL CHARACTER PIXEL ART ──
+const GIRL_PALETTE = {
+  1:'#c8845a', 2:'#1a1a1a', 3:'#f5c842', 4:'#fffbe0',
+  5:'#f2f2ea', 6:'#3d6b3d', 7:'#b8914e', 8:'#efefef',
+  9:'#222222', 10:'#0a0a0a', 11:'#e8d4b0', 12:'#5a9960',
+  13:'#d4a870', 14:'#2a5230', 15:'#8ab88a'
+};
+
+const GIRL_IDLE = [
+  [0,0,0,2,2,2,2,2,0],
+  [0,0,2,2,4,3,2,2,0],
+  [0,0,2,2,4,3,2,2,0],
+  [0,0,2,1,1,1,2,0,0],
+  [0,0,2,1,1,1,2,0,0],
+  [0,0,2,1,1,1,0,0,0],
+  [0,0,9,6,5,5,6,0,0],
+  [0,0,9,6,5,5,6,0,0],
+  [0,9,9,6,5,5,0,0,0],
+  [0,0,0,6,5,5,6,0,0],
+  [0,0,0,6,7,7,6,0,0],
+  [0,0,0,6,7,7,6,0,0],
+  [0,0,0,7,7,7,0,0,0],
+  [0,0,0,7,7,7,0,0,0],
+  [0,0,0,8,0,8,0,0,0],
+];
+
+const GIRL_RUN1 = [
+  [0,0,0,2,2,2,2,2,0],
+  [0,0,2,2,4,3,2,2,0],
+  [0,0,2,1,1,1,2,0,0],
+  [0,0,2,1,1,1,2,0,0],
+  [0,0,2,1,1,1,0,0,0],
+  [0,0,9,6,5,5,6,0,0],
+  [0,9,9,6,5,5,0,0,0],
+  [0,0,0,6,5,6,6,0,0],
+  [0,0,0,6,7,0,0,0,0],
+  [0,0,0,7,7,6,0,0,0],
+  [0,0,0,0,7,7,0,0,0],
+  [0,0,0,7,7,0,0,0,0],
+  [0,0,0,8,0,7,0,0,0],
+  [0,0,0,0,0,8,0,0,0],
+  [0,0,0,0,0,0,0,0,0],
+];
+
+const GIRL_RUN2 = [
+  [0,0,0,2,2,2,2,2,0],
+  [0,0,2,2,4,3,2,2,0],
+  [0,0,2,1,1,1,2,0,0],
+  [0,0,2,1,1,1,2,0,0],
+  [0,0,2,1,1,1,0,0,0],
+  [0,0,9,6,5,5,6,0,0],
+  [0,0,9,6,5,5,0,0,0],
+  [0,0,0,6,5,6,6,0,0],
+  [0,0,0,0,7,7,6,0,0],
+  [0,0,7,6,7,0,0,0,0],
+  [0,0,7,7,0,0,0,0,0],
+  [0,0,0,7,7,0,0,0,0],
+  [0,0,8,0,0,7,0,0,0],
+  [0,0,0,0,0,8,0,0,0],
+  [0,0,0,0,0,0,0,0,0],
+];
+
+function drawGirl(canvas, frame, scale=4) {
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const px = frame===0 ? GIRL_IDLE : (frame===1 ? GIRL_RUN1 : GIRL_RUN2);
+  P(ctx, scale, px, GIRL_PALETTE);
+}
+
+// ── LANDING CHAR ──
+function drawLandChar() {
+  const c = document.getElementById('land-char-canvas');
+  drawGirl(c, 0, 4);
+}
+
+// ── STARS ON LANDING ──
+function makeStars() {
+  const wrap = document.getElementById('landStars');
+  for(let i=0;i<30;i++){
+    const s = document.createElement('div');
+    s.className='star';
+    s.style.left = Math.random()*100+'%';
+    s.style.top = Math.random()*60+'%';
+    s.style.animationDelay = Math.random()*2+'s';
+    s.style.width = s.style.height = (Math.random()>0.5?4:6)+'px';
+    wrap.appendChild(s);
+  }
+}
+
+// ═══════════════════════════════════════════
+//  GAME ENGINE
+// ═══════════════════════════════════════════
+
+const SECTIONS = [
+  {
+    id:1, icon:'🌸', title:'ABOUT ME',
+    content: () => `<strong>Hello, World! ✿</strong><br>I'm a passionate developer & designer who loves building things that feel alive. I believe technology should be warm, human, and a little magical — like this portfolio itself. When I'm not coding, I'm sketching pixel art or listening to lo-fi playlists under fairy lights.`
+  },
+  {
+    id:2, icon:'⚡', title:'SKILLS',
+    content: () => {
+      const skills = [
+        ['HTML/CSS',92],['JavaScript',85],['React',80],
+        ['Python',75],['UI/UX Design',88],['Git',78]
+      ];
+      return `<strong>Power-Ups Unlocked:</strong><br>` + skills.map(([s,v])=>`
+        <div class="skill-bar-wrap">
+          <div class="skill-label">${s}</div>
+          <div class="skill-bar-bg"><div class="skill-bar-fill" data-val="${v}" style="width:0%"></div></div>
+        </div>`).join('');
+    }
+  },
+  {
+    id:3, icon:'🗺️', title:'PROJECTS',
+    content: () => `<strong>Quests Completed:</strong>
+      <div class="proj-cards">
+        <div class="proj-chip">🌐 Web Portfolio</div>
+        <div class="proj-chip">📱 Mobile App</div>
+        <div class="proj-chip">🎮 Pixel Game</div>
+        <div class="proj-chip">🤖 AI Chatbot</div>
+        <div class="proj-chip">📊 Data Dashboard</div>
+        <div class="proj-chip">✍️ Blog Platform</div>
+      </div>
+      <br>Each project taught me something new. Every bug was a mini-boss. Every deployment — a victory dance. 🎉`
+  },
+  {
+    id:4, icon:'🏆', title:'CERTIFICATIONS',
+    content: () => `<strong>Badges Earned:</strong><br>
+      <div class="tags">
+        <span class="tag tag-green">✓ Web Dev</span>
+        <span class="tag tag-purple">✓ UX Design</span>
+        <span class="tag tag-orange">✓ Python</span>
+        <span class="tag tag-pink">✓ Cloud Basics</span>
+        <span class="tag tag-green">✓ React</span>
+        <span class="tag tag-purple">✓ Figma Pro</span>
+      </div>
+      <br>Always leveling up. Always curious. The learning never stops! 📚`
+  },
+  {
+    id:5, icon:'🎨', title:'HOBBIES',
+    content: () => `<strong>Side Quests I Love:</strong><br>
+      <div class="tags">
+        <span class="tag tag-pink">🎨 Pixel Art</span>
+        <span class="tag tag-purple">🎵 Lo-fi Music</span>
+        <span class="tag tag-green">📚 Reading</span>
+        <span class="tag tag-orange">🌿 Plants</span>
+        <span class="tag tag-pink">🍵 Tea</span>
+        <span class="tag tag-purple">✈️ Travel</span>
+        <span class="tag tag-green">🎮 Indie Games</span>
+      </div>
+      <br>Life is a game — collect all the experiences! 🌸`
+  },
+  {
+    id:6, icon:'💌', title:'CONTACT',
+    content: () => `<strong>Let's Connect! ✿</strong><br>
+      Ready to team up on something amazing? I'd love to hear from you!<br><br>
+      <div class="tags">
+        <span class="tag tag-orange">✉️ Email Me</span>
+        <span class="tag tag-purple">💼 LinkedIn</span>
+        <span class="tag tag-green">🐙 GitHub</span>
+        <span class="tag tag-pink">🐦 Twitter</span>
+      </div>
+      <br><em>"The best projects start with a simple hello."</em> 👋`
+  }
+];
+
+// ── CLOUD SETUP ──
+function setupClouds() {
+  const wrap = document.getElementById('clouds');
+  const defs = [
+    {w:120,h:40,top:'8%',speed:0.3},
+    {w:80,h:28,top:'15%',speed:0.2},
+    {w:160,h:50,top:'5%',speed:0.35},
+    {w:100,h:35,top:'20%',speed:0.25},
+    {w:140,h:45,top:'12%',speed:0.28},
+    {w:90,h:30,top:'18%',speed:0.22},
+    {w:180,h:55,top:'3%',speed:0.32},
+  ];
+  defs.forEach((d,i)=>{
+    const c = document.createElement('div');
+    c.className = 'cloud';
+    c.style.cssText = `
+      width:${d.w}px; height:${d.h}px;
+      top:${d.top}; left:${(i/defs.length*120-10)}%;
+      opacity:0.88;
+    `;
+    c._speed = d.speed;
+    c._x = (i/defs.length)*120-10;
+    wrap.appendChild(c);
+  });
+}
+
+// ── GRASS TILES ──
+function setupGrass() {
+  const wrap = document.getElementById('grass-top');
+  for(let strip=0;strip<3;strip++){
+    const div = document.createElement('div');
+    div.className='grass-strip';
+    div.id='grass-strip-'+strip;
+    div.style.left = (strip * 110 - 10)+'%';
+    div.style.width='110%';
+    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('width','100%'); svg.setAttribute('height','28');
+    svg.style.display='block';
+    const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('width','100%'); rect.setAttribute('height','28');
+    rect.setAttribute('fill','#6dbf6b');
+    svg.appendChild(rect);
+    for(let x=0;x<200;x++){
+      const h = 6+Math.floor(Math.random()*8);
+      const r = document.createElementNS('http://www.w3.org/2000/svg','rect');
+      r.setAttribute('x',String(x*8)); r.setAttribute('y',String(0));
+      r.setAttribute('width','6'); r.setAttribute('height',String(h));
+      r.setAttribute('fill', Math.random()>0.5 ? '#8dd87a' : '#4a9e48');
+      svg.appendChild(r);
+    }
+    div.appendChild(svg);
+    wrap.appendChild(div);
+  }
+}
+
+// ── BRICKS ──
+function setupBricks() {
+  const body = document.getElementById('ground-body');
+  const rows = Math.ceil(body.offsetHeight/20)+1;
+  for(let r=0;r<rows;r++){
+    const row = document.createElement('div');
+    row.className='brick-row';
+    row.style.top = (r*20)+'px';
+    body.appendChild(row);
+  }
+}
+
+// ── HILLS ──
+function setupHills() {
+  const wrap = document.getElementById('hills-far');
+  const hillDefs = [
+    {w:300,h:70,l:'5%',c:'#b8dba8'},
+    {w:200,h:55,l:'25%',c:'#a8d898'},
+    {w:350,h:80,l:'45%',c:'#c0e0b0'},
+    {w:250,h:65,l:'68%',c:'#b0d8a0'},
+    {w:180,h:50,l:'88%',c:'#a8d898'},
+  ];
+  hillDefs.forEach(d=>{
+    const h = document.createElement('div');
+    h.className='hill';
+    h.style.cssText=`width:${d.w}px;height:${d.h}px;left:${d.l};background:${d.c}`;
+    wrap.appendChild(h);
+  });
+}
+
+// ── BUSHES ──
+function spawnBush(x) {
+  const wrap = document.getElementById('midground');
+  const bush = document.createElement('div');
+  bush.style.cssText=`
+    position:absolute; left:${x}px; bottom:0;
+    font-size:${24+Math.floor(Math.random()*16)}px;
+    opacity:0.85;
+  `;
+  bush.textContent = Math.random()>0.5?'🌿':'🍃';
+  wrap.appendChild(bush);
+  return bush;
+}
+
+// ── DOTS IN CARD ──
+function setupDots(n, current) {
+  const wrap = document.getElementById('cardDots');
+  wrap.innerHTML='';
+  for(let i=0;i<n;i++){
+    const d=document.createElement('div');
+    d.className='card-dot'+(i===current?' active':'');
+    wrap.appendChild(d);
+  }
+}
+
+// ═══════════════════════════════════════════
+//  MAIN GAME STATE
+// ═══════════════════════════════════════════
+
+let state = {
+  running: false,
+  sectionIdx: -1,
+  showingCard: false,
+  bgOffset: 0,
+  cloudOffsets: [],
+  animFrame: 0,
+  frameTimer: 0,
+  runFrame: 0,
+  dustTimer: 0,
+  leafTimer: 0,
+  charX: window.innerWidth * 0.22,
+  done: false,
+};
+
+let raf;
+
+function startGame() {
+  document.getElementById('landing').classList.add('hide');
+  setTimeout(()=>{
+    document.getElementById('landing').style.display='none';
+    document.getElementById('game').style.display='block';
+    setupClouds();
+    setupGrass();
+    setupBricks();
+    setupHills();
+    for(let i=0;i<8;i++) spawnBush(100+i*200+Math.random()*100);
+    initCloudOffsets();
+    requestAnimationFrame(loop);
+    setTimeout(()=>{ advanceSection(); }, 1200);
+  }, 800);
+}
+
+function initCloudOffsets() {
+  const clouds = document.querySelectorAll('.cloud');
+  state.cloudOffsets = Array.from(clouds).map((c,i)=>({
+    x: parseFloat(c.style.left)||0,
+    speed: c._speed||0.25,
+    el: c
+  }));
+}
+
+// ── MAIN LOOP ──
+function loop(ts) {
+  raf = requestAnimationFrame(loop);
+  if(state.running && !state.showingCard) {
+    state.bgOffset += 3;
+    scrollBg();
+    state.frameTimer++;
+    if(state.frameTimer>6){
+      state.runFrame = (state.runFrame+1)%2;
+      state.frameTimer=0;
+      drawGirl(document.getElementById('char-canvas'), state.runFrame+1, 4);
+    }
+    state.dustTimer++;
+    if(state.dustTimer>4){ spawnDust(); state.dustTimer=0; }
+    state.leafTimer++;
+    if(state.leafTimer>30){ spawnLeaf(); state.leafTimer=0; }
+  } else if(!state.running && !state.showingCard) {
+    state.animFrame++;
+    if(state.animFrame%40===0) drawGirl(document.getElementById('char-canvas'),0,4);
+    const c = document.getElementById('character');
+    c.style.transform = `translateY(${Math.sin(state.animFrame*0.06)*2}px)`;
+  }
+}
+
+function scrollBg() {
+  const offset = state.bgOffset;
+  state.cloudOffsets.forEach(co=>{
+    co.x -= co.speed;
+    if(co.x < -15) co.x = 110;
+    co.el.style.left = co.x+'%';
+  });
+  const hillsEl = document.getElementById('hills-far');
+  hillsEl.style.transform = `translateX(${-(offset*0.4)%window.innerWidth}px)`;
+  const midEl = document.getElementById('midground');
+  midEl.style.transform = `translateX(${-(offset*1.2)%window.innerWidth}px)`;
+  const gs = document.querySelectorAll('.grass-strip');
+  gs.forEach((g,i)=>{
+    const ox = ((i*110 - (offset*2)%110));
+    g.style.left = (ox%330-110)+'%';
+  });
+}
+
+function spawnDust() {
+  const p = document.getElementById('particles');
+  const d = document.createElement('div');
+  d.className='dust';
+  d.style.left = (state.charX + 10 + Math.random()*20)+'px';
+  const dx = (Math.random()-0.5)*30;
+  d.style.setProperty('--dx', dx+'px');
+  p.appendChild(d);
+  setTimeout(()=>d.remove(), 700);
+}
+
+function spawnLeaf() {
+  const p = document.getElementById('particles');
+  const l = document.createElement('div');
+  l.className='leaf-particle';
+  l.textContent = ['🍃','✿','🌿','⋆','·'][Math.floor(Math.random()*5)];
+  l.style.left = Math.random()*window.innerWidth+'px';
+  l.style.top = (20+Math.random()*40)+'%';
+  const lx = (Math.random()-0.5)*200;
+  const ly = 100+Math.random()*150;
+  l.style.setProperty('--lx',lx+'px');
+  l.style.setProperty('--ly',ly+'px');
+  l.style.animationDuration = (3+Math.random()*4)+'s';
+  p.appendChild(l);
+  setTimeout(()=>l.remove(), 7000);
+}
+
+// ── SECTIONS ──
+function advanceSection() {
+  state.sectionIdx++;
+  if(state.sectionIdx >= SECTIONS.length){
+    showDoneScreen();
+    return;
+  }
+  state.running=true;
+  state.showingCard=false;
+  drawGirl(document.getElementById('char-canvas'),1,4);
+  const delay = 3000 + Math.random()*1000;
+  setTimeout(()=>{
+    if(!state.showingCard){
+      stopAndShow();
+    }
+  }, delay);
+}
+
+function stopAndShow() {
+  state.running=false;
+  state.showingCard=true;
+  drawGirl(document.getElementById('char-canvas'),0,4);
+  document.getElementById('game').style.animation='';
+  void document.getElementById('game').offsetHeight;
+  document.getElementById('game').style.animation='screenShake 0.3s ease';
+  setTimeout(()=>document.getElementById('game').style.animation='',400);
+
+  const pct = ((state.sectionIdx+1)/SECTIONS.length*100).toFixed(0);
+  document.getElementById('progressFill').style.width = pct+'%';
+  document.getElementById('sectionLabel').textContent = `${state.sectionIdx+1}/6`;
+
+  const s = SECTIONS[state.sectionIdx];
+  document.getElementById('cardIcon').textContent = s.icon;
+  document.getElementById('cardTitle').textContent = s.title;
+  document.getElementById('cardNum').textContent = `0${s.id}/06`;
+  document.getElementById('cardBody').innerHTML = '';
+  setupDots(SECTIONS.length, state.sectionIdx);
+
+  const card = document.getElementById('section-card');
+  card.classList.add('visible');
+
+  typewriteHTML(document.getElementById('cardBody'), s.content(), ()=>{
+    if(s.id===2){
+      document.querySelectorAll('.skill-bar-fill').forEach(b=>{
+        setTimeout(()=>{ b.style.width = b.dataset.val+'%'; }, 100);
+      });
+    }
+    document.getElementById('continueHint').style.visibility='visible';
+  });
+}
+
+function typewriteHTML(el, html, cb) {
+  el.innerHTML = html;
+  el.style.opacity=0;
+  el.style.transition = 'opacity 0.4s';
+  setTimeout(()=>{ el.style.opacity=1; if(cb) setTimeout(cb,400); },50);
+}
+
+function hideCard() {
+  const card = document.getElementById('section-card');
+  card.classList.remove('visible');
+  state.showingCard=false;
+  setTimeout(()=>{ advanceSection(); }, 500);
+}
+
+function showDoneScreen() {
+  state.done=true;
+  state.running=false;
+  document.getElementById('progressFill').style.width='100%';
+  document.getElementById('sectionLabel').textContent='6/6';
+  document.getElementById('cardIcon').textContent='🎉';
+  document.getElementById('cardTitle').textContent='GAME CLEAR!';
+  document.getElementById('cardNum').textContent='✓ DONE';
+  document.getElementById('cardBody').innerHTML = `
+    <strong>You've reached the end! 🌸</strong><br>
+    Thanks for traveling through my pixel world.<br>
+    This journey was handcrafted with lots of love,<br>
+    late nights, and lo-fi playlists. ✨<br><br>
+    <div class="tags">
+      <span class="tag tag-green">🏆 Full Run Complete</span>
+      <span class="tag tag-pink">💌 Let's Collaborate</span>
+    </div>
+  `;
+  document.getElementById('continueHint').textContent='▶ THANKS FOR VISITING! ✿';
+  document.getElementById('continueHint').style.animation='none';
+  const card = document.getElementById('section-card');
+  card.classList.add('visible');
+  setupDots(SECTIONS.length, SECTIONS.length-1);
+}
+
+// ── CLICK HANDLER ──
+document.addEventListener('click', (e)=>{
+  if(e.target.id==='startBtn' || e.target.closest('#startBtn')) {
+    startGame(); return;
+  }
+  if(document.getElementById('landing').style.display==='none' || document.getElementById('landing').classList.contains('hide')){
+    if(state.showingCard && !state.done){
+      hideCard();
+    }
+  }
+});
+
+// ── CURSOR ──
+document.addEventListener('mousemove', e=>{
+  const c = document.getElementById('cursor');
+  c.style.left = (e.clientX-8)+'px';
+  c.style.top = (e.clientY-8)+'px';
+});
+
+// ── INIT ──
+makeStars();
+drawLandChar();
+
+setInterval(()=>{
+  if(document.getElementById('game').style.display!=='none' && !state.running){
+    const frames=[0,0,0,0,0,1,0,0,0,1];
+    drawGirl(document.getElementById('char-canvas'), frames[Math.floor(Date.now()/300)%frames.length], 4);
+  }
+}, 300);
+</script>
+</body>
+</html>

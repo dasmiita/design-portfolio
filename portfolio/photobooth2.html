@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>photobooth.exe</title>
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&family=Press+Start+2P&display=swap" rel="stylesheet">
+
+<style>
+/* =====================================================
+   DEMO SCAFFOLD
+===================================================== */
+body {
+  margin: 0;
+  background-image: url("../bg4.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Share Tech Mono', monospace;
+}
+.demo-trigger {
+  padding: 10px 24px;
+  background: #d4d0c8;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #404040;
+  border-bottom: 2px solid #404040;
+  color: #000;
+  font-family: Tahoma, sans-serif;
+  font-size: 11px;
+  cursor: pointer;
+}
+.demo-trigger:active {
+  border-top: 2px solid #404040;
+  border-left: 2px solid #404040;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+}
+
+/* =====================================================
+   OVERLAY
+===================================================== */
+#pb-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 900;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+#pb-overlay.pb-open { opacity: 1; pointer-events: all; }
+
+/* =====================================================
+   MAIN WINDOW — classic XP-era window chrome
+===================================================== */
+#pb-window {
+  position: fixed;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -48%) scale(0.97);
+  width: min(920px, 96vw);
+  height: min(600px, 92vh);
+  z-index: 901;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s, transform 0.2s cubic-bezier(0.22,1,0.36,1);
+
+  background: #d4d0c8;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #404040;
+  border-bottom: 2px solid #404040;
+  box-shadow: 2px 2px 0 #000, inset 1px 1px 0 #e8e4dc;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#pb-window.pb-open {
+  opacity: 1;
+  pointer-events: all;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* =====================================================
+   TITLE BAR — hot pink XP gradient
+===================================================== */
+.pb-titlebar {
+  height: 28px;
+  background: linear-gradient(180deg,
+    #91a0ae 0%,
+    #3369bb 35%,
+    #2b4786 65%,
+    #4e5279 100%
+  );
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  gap: 6px;
+  flex-shrink: 0;
+  user-select: none;
+  /* XP glass sheen */
+  position: relative;
+}
+.pb-titlebar::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 40%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.28), transparent);
+  pointer-events: none;
+}
+
+.pb-title-icon {
+  width: 16px; height: 16px;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+  /* pink camera pixel icon */
+  background:
+    linear-gradient(#fff,#fff) 3px 3px / 10px 8px no-repeat,
+    linear-gradient(#5d5a5c,#363a4e) 5px 5px / 6px 4px no-repeat,
+    linear-gradient(#d4257e,#d4257e) 6px 6px / 4px 2px no-repeat;
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 2px;
+}
+
+.pb-title-text {
+  font-family: Tahoma, 'Share Tech Mono', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.4);
+  letter-spacing: 0.02em;
+  flex: 1;
+  position: relative; z-index: 1;
+}
+
+/* XP window control buttons */
+.pb-trafficlights {
+  display: flex;
+  gap: 2px;
+  position: relative; z-index: 1;
+}
+.pb-tl {
+  width: 21px; height: 18px;
+  cursor: pointer;
+  border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 900; font-family: Marlett, Webdings, sans-serif;
+  line-height: 1;
+  border-top: 1px solid rgba(255,255,255,0.5);
+  border-left: 1px solid rgba(255,255,255,0.5);
+  border-right: 1px solid rgba(0,0,0,0.2);
+  border-bottom: 1px solid rgba(0,0,0,0.2);
+  transition: filter 0.1s;
+}
+.pb-tl:hover { filter: brightness(1.15); }
+.pb-tl:active { filter: brightness(0.9); }
+.pb-tl.min {
+  background: linear-gradient(180deg, #ffb3d9 0%, #f07ab0 50%, #d45890 100%);
+  color: #7a1a40;
+}
+.pb-tl.max {
+  background: linear-gradient(180deg, #ffb3d9 0%, #f07ab0 50%, #d45890 100%);
+  color: #7a1a40;
+}
+.pb-tl.close {
+  background: linear-gradient(180deg, #ff9090 0%, #e84040 50%, #c82020 100%);
+  color: white;
+}
+.pb-tl.min::before  { content: '0'; }
+.pb-tl.max::before  { content: '1'; }
+.pb-tl.close::before { content: 'r'; }
+
+/* =====================================================
+   MENU BAR
+===================================================== */
+.pb-toolbar {
+  height: 22px;
+  background: #d4d0c8;
+  border-bottom: 1px solid #808080;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.pb-toolbar-item {
+  font-family: Tahoma, sans-serif;
+  font-size: 11px;
+  color: #000;
+  padding: 2px 7px;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.pb-toolbar-item:hover {
+  background: #316ac5;
+  color: white;
+  border: 1px solid #082a8c;
+}
+.pb-address {
+  flex: 1;
+  height: 16px;
+  background: white;
+  border-top: 1px solid #707070;
+  border-left: 1px solid #707070;
+  border-right: 1px solid #e0dcd8;
+  border-bottom: 1px solid #e0dcd8;
+  display: flex; align-items: center;
+  padding: 0 6px;
+  margin: 0 4px;
+}
+.pb-address span {
+  font-family: Tahoma, sans-serif;
+  font-size: 10px;
+  color: #000080;
+}
+
+/* =====================================================
+   BODY
+===================================================== */
+.pb-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  background: #d4d0c8;
+  gap: 2px;
+  padding: 2px;
+}
+
+/* =====================================================
+   SIDEBAR — contact sheet / film strip
+===================================================== */
+.pb-sidebar {
+  width: 132px;
+  flex-shrink: 0;
+  background: #e8e4dc;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #808080;
+  border-bottom: 2px solid #808080;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 6px 0 0;
+  scrollbar-width: thin;
+  scrollbar-color: #c0b8b0 #e8e4dc;
+}
+.pb-sidebar::-webkit-scrollbar { width: 8px; }
+.pb-sidebar::-webkit-scrollbar-track { background: #e8e4dc; }
+.pb-sidebar::-webkit-scrollbar-thumb {
+  background: #c0b8b0;
+  border-top: 1px solid #e8e4dc;
+  border-left: 1px solid #e8e4dc;
+  border-right: 1px solid #808080;
+  border-bottom: 1px solid #808080;
+}
+
+/* Sidebar header */
+.pb-sidebar-head {
+  font-family: 'VT323', monospace;
+  font-size: 0.95rem;
+  color: #d4257e;
+  letter-spacing: 0.08em;
+  text-align: center;
+  padding: 0 8px 6px;
+  border-bottom: 1px solid #c0b8b0;
+  margin-bottom: 4px;
+}
+
+.pb-thumb-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5px 8px;
+  gap: 3px;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.1s;
+}
+.pb-thumb-item:hover { background: rgba(212,37,126,0.08); }
+.pb-thumb-item.pb-selected {
+  background: rgba(212,37,126,0.14);
+  outline: 1px dotted #d4257e;
+  outline-offset: -3px;
+}
+
+.pb-thumb-img {
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: #c0b8b0;
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #e8e4dc;
+  border-bottom: 2px solid #e8e4dc;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.pb-thumb-img img {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+}
+.pb-thumb-num {
+  position: absolute;
+  bottom: 2px; right: 3px;
+  font-family: 'VT323', monospace;
+  font-size: 0.7rem;
+  color: rgba(255,255,255,0.6);
+}
+.pb-thumb-empty {
+  font-family: 'VT323', monospace;
+  font-size: 1.4rem;
+  color: #a09890;
+  line-height: 1;
+}
+.pb-thumb-label {
+  font-family: Tahoma, sans-serif;
+  font-size: 9px;
+  color: #000;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+}
+
+/* Shot counter */
+.pb-sidebar-footer {
+  margin-top: auto;
+  padding: 6px 8px;
+  border-top: 1px solid #c0b8b0;
+  background: #d4d0c8;
+}
+.pb-shot-counter {
+  font-family: 'VT323', monospace;
+  font-size: 1.1rem;
+  color: #d4257e;
+  text-align: center;
+  letter-spacing: 0.06em;
+}
+
+/* Caption input */
+.pb-caption-wrap {
+  padding: 4px 8px 6px;
+}
+.pb-caption-input {
+  width: 100%;
+  background: white;
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #e8e4dc;
+  border-bottom: 2px solid #e8e4dc;
+  padding: 3px 5px;
+  font-family: Tahoma, sans-serif;
+  font-size: 9px;
+  color: #000;
+  outline: none;
+}
+.pb-caption-input::placeholder { color: #a09890; }
+
+/* =====================================================
+   MAIN PANE
+===================================================== */
+.pb-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  gap: 2px;
+}
+
+/* =====================================================
+   VIEWPORT — the actual camera/preview area
+===================================================== */
+.pb-viewport {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #1a1a1a;
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #e8e4dc;
+  border-bottom: 2px solid #e8e4dc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Subtle scanlines — very light */
+.pb-scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 3px
+  );
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Vignette — soft, not dramatic */
+.pb-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center,
+    transparent 55%,
+    rgba(0,0,0,0.3) 100%
+  );
+  pointer-events: none;
+  z-index: 6;
+}
+
+/* No signal */
+.pb-nosignal {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  z-index: 10;
+  background: #1a1a1a;
+}
+/* XP-style "no signal" pattern */
+.pb-nosignal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(45deg,
+      transparent 0, transparent 3px,
+      rgba(255,255,255,0.02) 3px, rgba(255,255,255,0.02) 4px
+    );
+}
+.pb-nosignal-text {
+  font-family: 'VT323', monospace;
+  font-size: 1.8rem;
+  color: #f472b6;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  position: relative; z-index: 1;
+}
+.pb-nosignal-sub {
+  font-family: Tahoma, sans-serif;
+  font-size: 9px;
+  color: #808080;
+  letter-spacing: 0.06em;
+  position: relative; z-index: 1;
+}
+
+#pb-video {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+  display: block;
+}
+
+#pb-video-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  transition: background 0.3s;
+}
+
+/* Corner markers — XP-style dashed corners */
+.pb-corner {
+  position: absolute;
+  width: 14px; height: 14px;
+  z-index: 8;
+  pointer-events: none;
+}
+.pb-corner.tl { top: 8px; left: 8px;
+  border-top: 2px solid rgba(255,182,220,0.6);
+  border-left: 2px solid rgba(255,182,220,0.6); }
+.pb-corner.tr { top: 8px; right: 8px;
+  border-top: 2px solid rgba(255,182,220,0.6);
+  border-right: 2px solid rgba(255,182,220,0.6); }
+.pb-corner.bl { bottom: 8px; left: 8px;
+  border-bottom: 2px solid rgba(255,182,220,0.6);
+  border-left: 2px solid rgba(255,182,220,0.6); }
+.pb-corner.br { bottom: 8px; right: 8px;
+  border-bottom: 2px solid rgba(255,182,220,0.6);
+  border-right: 2px solid rgba(255,182,220,0.6); }
+
+/* Face detect box */
+.pb-detect-box {
+  position: absolute;
+  top: 15%; left: 20%;
+  width: 45%; height: 65%;
+  border: 1px dashed rgba(255,182,220,0.5);
+  z-index: 9;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.pb-detect-box.pb-visible { opacity: 1; }
+.pb-detect-label {
+  position: absolute;
+  top: -1px; left: 5px;
+  font-family: Tahoma, sans-serif;
+  font-size: 8px;
+  color: #f472b6;
+  background: #1a1a1a;
+  padding: 0 3px;
+}
+
+/* Flash */
+#pb-flash {
+  position: absolute;
+  inset: 0;
+  background: white;
+  opacity: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+.pb-flash-active { animation: pbFlash 0.22s ease-out forwards; }
+@keyframes pbFlash { 0% { opacity: 0.95; } 100% { opacity: 0; } }
+
+/* Countdown — big, pixelated */
+#pb-countdown {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 4.5rem;
+  color: white;
+  text-shadow:
+    3px 3px 0 #d4257e,
+    6px 6px 0 rgba(0,0,0,0.3);
+  z-index: 30;
+  display: none;
+  pointer-events: none;
+  line-height: 1;
+}
+
+/* Preview image */
+.pb-preview-img {
+  width: 100%; height: 100%;
+  object-fit: contain;
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+}
+
+/* =====================================================
+   CONTROLS STRIP
+===================================================== */
+.pb-controls {
+  height: 106px;
+  background: #d4d0c8;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #808080;
+  border-bottom: 2px solid #808080;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 7px 10px 8px;
+  flex-shrink: 0;
+}
+
+/* Filter pills — XP tab style */
+.pb-filter-row {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.pb-filter-row::-webkit-scrollbar { display: none; }
+
+.pb-filter-label {
+  font-family: Tahoma, sans-serif;
+  font-size: 9px;
+  color: #4a4640;
+  font-weight: 700;
+  white-space: nowrap;
+  margin-right: 3px;
+}
+
+.pb-filter-pill {
+  font-family: Tahoma, sans-serif;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 9px;
+  background: #d4d0c8;
+  border-top: 2px solid #e8e4dc;
+  border-left: 2px solid #e8e4dc;
+  border-right: 2px solid #808080;
+  border-bottom: 2px solid #808080;
+  color: #000;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: none;
+}
+.pb-filter-pill:hover {
+  background: #e8e4f8;
+}
+.pb-filter-pill.pb-active {
+  background: #e8d0ec;
+  border-top: 2px solid #808080;
+  border-left: 2px solid #808080;
+  border-right: 2px solid #e8e4dc;
+  border-bottom: 2px solid #e8e4dc;
+  color: #800060;
+}
+
+/* Button row */
+.pb-btn-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.pb-status {
+  font-family: Tahoma, sans-serif;
+  font-size: 9px;
+  color: #4a4640;
+  flex: 1;
+  font-style: italic;
+}
+
+/* Classic XP push buttons */
+.pb-btn {
+  font-family: Tahoma, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 14px;
+  background: #d4d0c8;
+  border-top: 2px solid #ffffff;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #404040;
+  border-bottom: 2px solid #404040;
+  color: #000;
+  cursor: pointer;
+  white-space: nowrap;
+  min-width: 72px;
+  text-align: center;
+  position: relative;
+  transition: none;
+  box-shadow: 1px 1px 0 #808080 inset;
+}
+.pb-btn:hover { background: #e0dcd4; }
+.pb-btn:active, .pb-btn:focus-visible {
+  border-top: 2px solid #404040;
+  border-left: 2px solid #404040;
+  border-right: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  box-shadow: none;
+}
+
+/* Coloured variants */
+.pb-btn-shoot {
+  background: #f0d0e8;
+  border-color: #ffffff #404040 #404040 #ffffff;
+  color: #800040;
+}
+.pb-btn-shoot:hover { background: #f8d8f0; }
+
+.pb-btn-retake {
+  background: #f0e8c0;
+  border-color: #ffffff #404040 #404040 #ffffff;
+  color: #604000;
+}
+.pb-btn-retake:hover { background: #f8f0c8; }
+
+.pb-btn-save {
+  background: #c8e8c8;
+  border-color: #ffffff #404040 #404040 #ffffff;
+  color: #004000;
+}
+.pb-btn-save:hover { background: #d4f0d4; }
+
+.pb-hidden { display: none !important; }
+
+/* =====================================================
+   STATUSBAR at very bottom
+===================================================== */
+.pb-statusbar {
+  height: 20px;
+  background: #d4d0c8;
+  border-top: 1px solid #808080;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.pb-statusbar-panel {
+  font-family: Tahoma, sans-serif;
+  font-size: 9px;
+  color: #000;
+  padding: 1px 8px;
+  border-top: 1px solid #808080;
+  border-left: 1px solid #808080;
+  border-right: 1px solid #e8e4dc;
+  border-bottom: 1px solid #e8e4dc;
+}
+</style>
+</head>
+<body>
+
+<button class="demo-trigger" onclick="pbOpen()">Open Photobooth</button>
+
+<!-- Backdrop -->
+<div id="pb-overlay" onclick="pbClose()"></div>
+
+<!-- Window -->
+<div id="pb-window">
+
+  <!-- Title bar -->
+  <div class="pb-titlebar">
+    <div class="pb-title-icon"></div>
+    <div class="pb-title-text">Photo Booth &mdash; Live Capture</div>
+    <div class="pb-trafficlights">
+      <div class="pb-tl min"></div>
+      <div class="pb-tl max"></div>
+      <div class="pb-tl close" onclick="pbClose()"></div>
+    </div>
+  </div>
+
+  <!-- Menu bar -->
+  <div class="pb-toolbar">
+    <span class="pb-toolbar-item">File</span>
+    <span class="pb-toolbar-item">Edit</span>
+    <span class="pb-toolbar-item">View</span>
+    <span class="pb-toolbar-item">Capture</span>
+    <span class="pb-toolbar-item">Help</span>
+    <div class="pb-address">
+      <span>C:\My Pictures\photobooth\session_<span id="pb-session-id">----</span>\</span>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="pb-body">
+
+    <!-- Sidebar -->
+    <div class="pb-sidebar">
+      <div class="pb-sidebar-head">CONTACT SHEET</div>
+
+      <div class="pb-thumb-item pb-selected" id="pb-thumb-0" onclick="pbSelectThumb(0)">
+        <div class="pb-thumb-img" id="pb-thumb-img-0">
+          <span class="pb-thumb-empty">01</span>
+          <span class="pb-thumb-num"></span>
+        </div>
+        <div class="pb-thumb-label" id="pb-thumb-label-0">frame_001</div>
+      </div>
+      <div class="pb-thumb-item" id="pb-thumb-1" onclick="pbSelectThumb(1)">
+        <div class="pb-thumb-img" id="pb-thumb-img-1"><span class="pb-thumb-empty">02</span></div>
+        <div class="pb-thumb-label" id="pb-thumb-label-1">frame_002</div>
+      </div>
+      <div class="pb-thumb-item" id="pb-thumb-2" onclick="pbSelectThumb(2)">
+        <div class="pb-thumb-img" id="pb-thumb-img-2"><span class="pb-thumb-empty">03</span></div>
+        <div class="pb-thumb-label" id="pb-thumb-label-2">frame_003</div>
+      </div>
+      <div class="pb-thumb-item" id="pb-thumb-3" onclick="pbSelectThumb(3)">
+        <div class="pb-thumb-img" id="pb-thumb-img-3"><span class="pb-thumb-empty">04</span></div>
+        <div class="pb-thumb-label" id="pb-thumb-label-3">frame_004</div>
+      </div>
+
+      <div class="pb-sidebar-footer">
+        <div class="pb-shot-counter" id="pb-shot-counter">0 / 4</div>
+      </div>
+
+      <div class="pb-caption-wrap">
+        <input type="text" class="pb-caption-input" id="pb-caption" placeholder="add caption..." maxlength="20">
+      </div>
+    </div>
+
+    <!-- Main pane -->
+    <div class="pb-main">
+
+      <!-- Viewport -->
+      <div class="pb-viewport">
+        <div class="pb-nosignal" id="pb-nosignal">
+          <div class="pb-nosignal-text">NO SIGNAL</div>
+          <div class="pb-nosignal-sub">click Init Camera to begin</div>
+        </div>
+
+        <video id="pb-video" autoplay playsinline></video>
+        <div id="pb-video-overlay"></div>
+        <div class="pb-scanlines"></div>
+        <div class="pb-vignette"></div>
+
+        <div class="pb-corner tl"></div>
+        <div class="pb-corner tr"></div>
+        <div class="pb-corner bl"></div>
+        <div class="pb-corner br"></div>
+
+        <div class="pb-detect-box" id="pb-detect-box">
+          <span class="pb-detect-label">face detected</span>
+        </div>
+
+        <div id="pb-flash"></div>
+        <div id="pb-countdown">3</div>
+        <img id="pb-preview-img" class="pb-preview-img" alt="preview">
+      </div>
+
+      <!-- Controls -->
+      <div class="pb-controls">
+        <div class="pb-filter-row">
+          <span class="pb-filter-label">Filter:</span>
+          <div class="pb-filter-pill pb-active" data-filter="none">Normal</div>
+          <div class="pb-filter-pill" data-filter="vintage">VHS</div>
+          <div class="pb-filter-pill" data-filter="dreamy">Dreamy</div>
+          <div class="pb-filter-pill" data-filter="bw">B&W</div>
+          <div class="pb-filter-pill" data-filter="pink">Blush</div>
+          <div class="pb-filter-pill" data-filter="disposable">Film</div>
+          <div class="pb-filter-pill" data-filter="cyber">Cold</div>
+        </div>
+        <div class="pb-btn-row">
+          <div class="pb-status" id="pb-status">System standby. Camera not initialised.</div>
+          <button class="pb-btn pb-btn-start"  id="pb-start-btn"  onclick="pbStartCamera()">Init Camera</button>
+          <button class="pb-btn pb-btn-shoot   pb-hidden" id="pb-shoot-btn"  onclick="pbCaptureSequence()">Shoot x4</button>
+          <button class="pb-btn pb-btn-retake  pb-hidden" id="pb-retake-btn" onclick="pbRetake()">Retake</button>
+          <button class="pb-btn pb-btn-save    pb-hidden" id="pb-save-btn"   onclick="pbSave()">Save Strip</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div class="pb-statusbar">
+    <div class="pb-statusbar-panel" id="pb-statusbar-left">Ready</div>
+    <div class="pb-statusbar-panel" id="pb-statusbar-right">0 objects</div>
+  </div>
+
+</div>
+
+<canvas id="pb-canvas" style="display:none"></canvas>
+
+<script>
+/* =====================================================
+   PHOTOBOOTH JS — logic unchanged, UI only redesigned
+===================================================== */
+const pbState = {
+  stream: null,
+  photos: [],
+  filter: 'none',
+  selectedThumb: 0,
+  showingPreview: false,
+};
+
+const pbEl = {
+  overlay:     () => document.getElementById('pb-overlay'),
+  win:         () => document.getElementById('pb-window'),
+  video:       () => document.getElementById('pb-video'),
+  canvas:      () => document.getElementById('pb-canvas'),
+  flash:       () => document.getElementById('pb-flash'),
+  countdown:   () => document.getElementById('pb-countdown'),
+  status:      () => document.getElementById('pb-status'),
+  nosignal:    () => document.getElementById('pb-nosignal'),
+  detectBox:   () => document.getElementById('pb-detect-box'),
+  sessionId:   () => document.getElementById('pb-session-id'),
+  shotCounter: () => document.getElementById('pb-shot-counter'),
+  previewImg:  () => document.getElementById('pb-preview-img'),
+  startBtn:    () => document.getElementById('pb-start-btn'),
+  shootBtn:    () => document.getElementById('pb-shoot-btn'),
+  retakeBtn:   () => document.getElementById('pb-retake-btn'),
+  saveBtn:     () => document.getElementById('pb-save-btn'),
+  sbLeft:      () => document.getElementById('pb-statusbar-left'),
+  sbRight:     () => document.getElementById('pb-statusbar-right'),
+};
+
+function pbOpen() {
+  pbEl.overlay().classList.add('pb-open');
+  pbEl.win().classList.add('pb-open');
+  const sid = Math.random().toString(36).substring(2,8).toUpperCase();
+  pbEl.sessionId().textContent = sid;
+  pbEl.sbLeft().textContent = 'Session: ' + sid;
+}
+
+function pbClose() {
+  pbEl.overlay().classList.remove('pb-open');
+  pbEl.win().classList.remove('pb-open');
+  if (pbState.stream) {
+    pbState.stream.getTracks().forEach(t => t.stop());
+    pbState.stream = null;
+    pbEl.video().srcObject = null;
+  }
+}
+
+async function pbStartCamera() {
+  try {
+    pbSetStatus('Requesting camera access...');
+    pbState.stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 960 } },
+      audio: false
+    });
+    pbEl.video().srcObject = pbState.stream;
+    pbEl.nosignal().style.display = 'none';
+    pbEl.startBtn().classList.add('pb-hidden');
+    pbEl.shootBtn().classList.remove('pb-hidden');
+    pbSetStatus('Camera online. Ready to capture.');
+    pbEl.sbLeft().textContent = 'Camera: active';
+    setTimeout(() => pbEl.detectBox().classList.add('pb-visible'), 900);
+  } catch(e) {
+    pbSetStatus('Camera access denied. Check browser permissions.');
+  }
+}
+
+async function pbCaptureSequence() {
+  pbState.photos = [];
+  pbEl.shootBtn().disabled = true;
+  pbEl.retakeBtn().classList.add('pb-hidden');
+  pbEl.saveBtn().classList.add('pb-hidden');
+  pbHidePreview();
+  for (let i = 0; i < 4; i++) pbResetThumb(i);
+
+  for (let i = 0; i < 4; i++) {
+    pbSetStatus(`Frame ${i+1} of 4 — hold still.`);
+    pbEl.sbLeft().textContent = `Capturing frame ${i+1} of 4...`;
+    await pbCountdown(3);
+    const flash = pbEl.flash();
+    flash.classList.add('pb-flash-active');
+    setTimeout(() => flash.classList.remove('pb-flash-active'), 300);
+    const dataUrl = pbCaptureFrame();
+    pbState.photos.push(dataUrl);
+    pbSetThumb(i, dataUrl);
+    pbEl.shotCounter().textContent = `${pbState.photos.length} / 4`;
+    pbEl.sbRight().textContent = `${pbState.photos.length} frames captured`;
+    await pbWait(900);
+  }
+
+  pbSetStatus('Session complete. Click a frame to preview, or Save Strip to download.');
+  pbEl.shootBtn().disabled = false;
+  pbEl.shootBtn().classList.add('pb-hidden');
+  pbEl.retakeBtn().classList.remove('pb-hidden');
+  pbEl.saveBtn().classList.remove('pb-hidden');
+  pbEl.sbLeft().textContent = 'Session complete';
+  pbSelectThumb(0);
+}
+
+function pbCountdown(secs) {
+  return new Promise(resolve => {
+    let c = secs;
+    const el = pbEl.countdown();
+    el.textContent = c;
+    el.style.display = 'block';
+    const t = setInterval(() => {
+      c--;
+      if (c <= 0) { clearInterval(t); el.style.display = 'none'; resolve(); }
+      else el.textContent = c;
+    }, 1000);
+  });
+}
+
+function pbCaptureFrame() {
+  const vid = pbEl.video();
+  const cv  = pbEl.canvas();
+  const ctx = cv.getContext('2d');
+  cv.width  = vid.videoWidth;
+  cv.height = vid.videoHeight;
+  ctx.translate(cv.width, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(vid, 0, 0, cv.width, cv.height);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  pbApplyFilter(ctx, cv.width, cv.height, pbState.filter);
+  pbAddGrain(ctx, cv.width, cv.height);
+  return cv.toDataURL('image/png');
+}
+
+function pbApplyFilter(ctx, w, h, filter) {
+  if (filter === 'none') return;
+  const id = ctx.getImageData(0, 0, w, h);
+  const d  = id.data;
+  for (let i = 0; i < d.length; i += 4) {
+    let r = d[i], g = d[i+1], b = d[i+2];
+    if (filter === 'bw') {
+      const gray = pbClamp(r*0.299 + g*0.587 + b*0.114);
+      [r,g,b] = pbContrast(gray, gray, gray, 1.3);
+    } else if (filter === 'vintage') {
+      const or=r, og=g, ob=b;
+      r = pbClamp(or*0.393 + og*0.769 + ob*0.189);
+      g = pbClamp(or*0.349 + og*0.686 + ob*0.168);
+      b = pbClamp(or*0.272 + og*0.534 + ob*0.131);
+      [r,g,b] = pbContrast(r,g,b,1.1);
+      r = pbClamp(r+15); g = pbClamp(g+5); b = pbClamp(b-10);
+    } else if (filter === 'dreamy') {
+      [r,g,b] = pbSaturate(r,g,b,1.25);
+      [r,g,b] = pbBright(r,g,b,1.15);
+      r = pbClamp(r+8); g = pbClamp(g+4);
+    } else if (filter === 'pink') {
+      [r,g,b] = pbHueRot(r,g,b,-25);
+      [r,g,b] = pbSaturate(r,g,b,1.35);
+      r = pbClamp(r+20); b = pbClamp(b+10);
+    } else if (filter === 'disposable') {
+      [r,g,b] = pbSaturate(r,g,b,1.5);
+      [r,g,b] = pbContrast(r,g,b,1.15);
+      [r,g,b] = pbBright(r,g,b,0.88);
+      r = pbClamp(r+10); g = pbClamp(g+5);
+    } else if (filter === 'cyber') {
+      [r,g,b] = pbSaturate(r,g,b,0.3);
+      [r,g,b] = pbContrast(r,g,b,1.2);
+      const gray = r*0.299 + g*0.587 + b*0.114;
+      g = pbClamp(g + (gray - g)*0.15 + 8);
+      b = pbClamp(b + (gray - b)*0.15 + 20);
+      r = pbClamp(r - 10);
+    }
+    d[i]=r; d[i+1]=g; d[i+2]=b;
+  }
+  ctx.putImageData(id, 0, 0);
+}
+
+function pbClamp(v) { return Math.max(0, Math.min(255, Math.round(v))); }
+function pbContrast(r,g,b,f) { return [pbClamp((r-128)*f+128), pbClamp((g-128)*f+128), pbClamp((b-128)*f+128)]; }
+function pbBright(r,g,b,f)   { return [pbClamp(r*f), pbClamp(g*f), pbClamp(b*f)]; }
+function pbSaturate(r,g,b,f) {
+  const gr = r*0.299 + g*0.587 + b*0.114;
+  return [pbClamp(gr+(r-gr)*f), pbClamp(gr+(g-gr)*f), pbClamp(gr+(b-gr)*f)];
+}
+function pbHueRot(r,g,b,deg) {
+  r/=255; g/=255; b/=255;
+  const mx=Math.max(r,g,b), mn=Math.min(r,g,b);
+  let h,s,l=(mx+mn)/2;
+  if(mx===mn){h=s=0;}
+  else{const d=mx-mn;s=l>0.5?d/(2-mx-mn):d/(mx+mn);switch(mx){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;default:h=((r-g)/d+4)/6;}}
+  h=(h+deg/360+1)%1;
+  function h2r(p,q,t){if(t<0)t+=1;if(t>1)t-=1;if(t<1/6)return p+(q-p)*6*t;if(t<0.5)return q;if(t<2/3)return p+(q-p)*(2/3-t)*6;return p;}
+  let nr,ng,nb;
+  if(s===0){nr=ng=nb=l;}else{const q=l<0.5?l*(1+s):l+s-l*s,p=2*l-q;nr=h2r(p,q,h+1/3);ng=h2r(p,q,h);nb=h2r(p,q,h-1/3);}
+  return[pbClamp(nr*255),pbClamp(ng*255),pbClamp(nb*255)];
+}
+function pbAddGrain(ctx,w,h) {
+  for(let i=0;i<3000;i++){
+    ctx.fillStyle=`rgba(255,255,255,${Math.random()*0.04})`;
+    ctx.fillRect(Math.random()*w,Math.random()*h,1,1);
+  }
+}
+
+document.querySelectorAll('.pb-filter-pill').forEach(pill => {
+  pill.addEventListener('click', () => {
+    document.querySelectorAll('.pb-filter-pill').forEach(p => p.classList.remove('pb-active'));
+    pill.classList.add('pb-active');
+    pbState.filter = pill.dataset.filter;
+    pbEl.video().style.filter = pbGetCSSFilter(pbState.filter);
+  });
+});
+
+function pbGetCSSFilter(f) {
+  switch(f) {
+    case 'vintage':    return 'sepia(0.4) contrast(1.1)';
+    case 'dreamy':     return 'brightness(1.1) saturate(1.2) blur(0.3px)';
+    case 'bw':         return 'grayscale(1) contrast(1.3)';
+    case 'pink':       return 'hue-rotate(-20deg) saturate(1.3)';
+    case 'disposable': return 'contrast(1.15) saturate(1.4) brightness(0.9)';
+    case 'cyber':      return 'saturate(0.3) contrast(1.2) hue-rotate(180deg) brightness(0.9)';
+    default:           return 'none';
+  }
+}
+
+function pbSetThumb(i, dataUrl) {
+  const wrap = document.getElementById(`pb-thumb-img-${i}`);
+  wrap.innerHTML = `<img src="${dataUrl}" alt="frame ${i+1}"><span class="pb-thumb-num">${String(i+1).padStart(2,'0')}</span>`;
+  document.getElementById(`pb-thumb-label-${i}`).textContent = `frame_${String(i+1).padStart(3,'0')}`;
+}
+function pbResetThumb(i) {
+  const wrap = document.getElementById(`pb-thumb-img-${i}`);
+  wrap.innerHTML = `<span class="pb-thumb-empty">${String(i+1).padStart(2,'0')}</span>`;
+  document.getElementById(`pb-thumb-label-${i}`).textContent = `frame_${String(i+1).padStart(3,'0')}`;
+}
+function pbSelectThumb(i) {
+  document.querySelectorAll('.pb-thumb-item').forEach((el,idx) => el.classList.toggle('pb-selected', idx===i));
+  pbState.selectedThumb = i;
+  if (pbState.photos[i]) pbShowPreview(pbState.photos[i]);
+  else pbHidePreview();
+}
+function pbShowPreview(dataUrl) {
+  const img = pbEl.previewImg();
+  img.src = dataUrl; img.style.display = 'block';
+  pbEl.video().style.opacity = '0';
+  pbState.showingPreview = true;
+}
+function pbHidePreview() {
+  pbEl.previewImg().style.display = 'none';
+  pbEl.video().style.opacity = '1';
+  pbState.showingPreview = false;
+}
+function pbRetake() {
+  pbState.photos = [];
+  pbHidePreview();
+  for (let i = 0; i < 4; i++) pbResetThumb(i);
+  pbEl.retakeBtn().classList.add('pb-hidden');
+  pbEl.saveBtn().classList.add('pb-hidden');
+  pbEl.shootBtn().classList.remove('pb-hidden');
+  pbEl.shotCounter().textContent = '0 / 4';
+  pbEl.sbRight().textContent = '0 frames captured';
+  pbSetStatus('Reset. Ready for new session.');
+}
+
+async function pbSave() {
+  if (pbState.photos.length < 4) { pbSetStatus('Capture all 4 frames first.'); return; }
+  pbSetStatus('Rendering film strip...');
+  pbEl.sbLeft().textContent = 'Saving...';
+
+  const sc = document.createElement('canvas');
+  const ctx = sc.getContext('2d');
+  const pw=800, ph=600, pad=36, sp=14, footerH=120;
+  sc.width  = pw + pad*2;
+  sc.height = ph*4 + sp*3 + pad*2 + footerH;
+
+  // Background — warm off-white like photo paper
+  ctx.fillStyle = '#f5f0e8';
+  ctx.fillRect(0,0,sc.width,sc.height);
+
+  // Side rule lines — like a contact sheet
+  ctx.fillStyle = '#e0d8cc';
+  ctx.fillRect(0,0,pad-8,sc.height);
+  ctx.fillRect(sc.width-(pad-8),0,pad-8,sc.height);
+
+  // Film holes
+  ctx.fillStyle = '#d4ccbc';
+  for (let y = 16; y < sc.height-16; y += 26) {
+    ctx.beginPath(); ctx.arc(16, y, 5, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sc.width-16, y, 5, 0, Math.PI*2); ctx.fill();
+  }
+
+  for (let i = 0; i < 4; i++) {
+    const img = new Image();
+    img.src = pbState.photos[i];
+    await new Promise(r => img.onload = r);
+    const y = pad + i*(ph+sp);
+    // Slight shadow under each frame
+    ctx.fillStyle = 'rgba(0,0,0,0.08)';
+    ctx.fillRect(pad+3, y+3, pw, ph);
+    ctx.drawImage(img, pad, y, pw, ph);
+    // Frame number
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.font = '500 14px Tahoma, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(`${String(i+1).padStart(3,'0')}`, pad+6, y+ph-8);
+  }
+
+  // Footer
+  const now = new Date();
+  const ts = now.getFullYear()+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+String(now.getDate()).padStart(2,'0');
+  ctx.fillStyle = '#8a7a6a';
+  ctx.font = '400 18px "Share Tech Mono", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(ts, sc.width/2, sc.height - footerH + 36);
+
+  const caption = document.getElementById('pb-caption').value.trim();
+  if (caption) {
+    ctx.fillStyle = '#d4257e';
+    ctx.font = '700 48px Tahoma, "Share Tech Mono", sans-serif';
+    ctx.fillText(caption, sc.width/2, sc.height - footerH + 90);
+  }
+
+  // Bottom rule
+  ctx.fillStyle = '#d4ccbc';
+  ctx.fillRect(pad, sc.height - footerH + 10, pw, 1);
+
+  const link = document.createElement('a');
+  link.download = `photobooth_${Date.now()}.png`;
+  link.href = sc.toDataURL('image/png');
+  link.click();
+  pbSetStatus('Strip saved to your downloads folder.');
+  pbEl.sbLeft().textContent = 'Saved successfully';
+}
+
+function pbSetStatus(msg) { pbEl.status().textContent = msg; }
+function pbWait(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') pbClose(); });
+</script>
+</body>
+</html>

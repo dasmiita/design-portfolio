@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Purble Place Portfolio</title>
+
+<style>
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    overflow: hidden;
+    font-family: Tahoma, sans-serif;
+    background: black;
+}
+
+#background {
+    position: fixed;
+    inset: 0;
+    background-image: url("../bg4.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    image-rendering: pixelated;
+}
+
+/* ===== MAIN SCREEN ===== */
+
+#screen {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    animation: popup 1s ease forwards;
+    width: 1100px;
+    max-width: 95vw;
+}
+
+#screen img {
+    width: 100%;
+    display: block;
+    pointer-events: none;
+    user-select: none;
+    border-radius: 12px;
+}
+
+/* ===== CLICKABLE AREAS ===== */
+
+.house {
+    position: absolute;
+    cursor: pointer;
+    transition: 0.2s;
+    /* NO transform on any house — it breaks click detection */
+}
+
+.house::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    background: radial-gradient(circle, rgba(255,255,255,0.18), transparent 70%);
+    opacity: 0;
+    transition: 0.2s;
+}
+
+.house:hover::after { opacity: 1; }
+
+.house:hover {
+    box-shadow: 0 0 25px rgba(255,255,255,0.2);
+    filter: brightness(1.08);
+}
+
+/* Bell House — left building */
+#bellHouse {
+    left: 3%;
+    top: 28%;
+    width: 23%;
+    height: 38%;
+    z-index: 10;
+}
+
+/* Chimney/Cake House — center building
+   Image is 1100px wide. Cake house spans roughly x:430–710, y:390–680
+   As percentages of the image dimensions */
+#chimneyHouse {
+    left: 29%;
+    top: 37%;
+    width: 26%;
+    height: 44%;
+    z-index: 30;
+}
+
+/* Eyes House — right building */
+#eyesHouse {
+    right: 3%;
+    top: 33%;
+    width: 30%;
+    height: 48%;
+    z-index: 10;
+}
+
+/* ===== OVERLAY ===== */
+
+#overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.25s;
+    z-index: 50;
+}
+
+#overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* ===== WINDOW ===== */
+
+.window {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.85);
+    width: 760px;
+    height: 520px;
+    max-width: 95vw;
+    max-height: 90vh;
+    background: linear-gradient(to bottom, #ffffff, #eef4fa);
+    border: 1px solid #6d93bc;
+    border-radius: 8px;
+    overflow: hidden;
+    opacity: 0;
+    z-index: 100;
+    box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,0.9),
+        inset 0 1px 0 rgba(255,255,255,0.9),
+        0 0 0 1px #426890,
+        0 18px 45px rgba(0,0,0,0.4);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+}
+
+.window.active {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    pointer-events: all;
+}
+
+/* ===== TITLEBAR ===== */
+
+.titlebar {
+    height: 38px;
+    background:
+        linear-gradient(to bottom, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.10) 3%, rgba(255,255,255,0.00) 50%, rgba(0,0,0,0.06) 100%),
+        linear-gradient(to bottom, #4d8fc7 0%, #3477b3 45%, #2864a0 50%, #3070b0 55%, #4d8dc4 100%);
+    border-bottom: 1px solid #1a4e82;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px;
+    position: relative;
+    user-select: none;
+}
+
+.titlebar::before {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; top: 0;
+    height: 50%;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.7), rgba(255,255,255,0));
+}
+
+.window-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 2;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.window-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    background: radial-gradient(circle at top left, #78f7ff, #0077ff);
+    border: 1px solid rgba(255,255,255,0.8);
+}
+
+.window-buttons {
+    display: flex;
+    gap: 5px;
+    z-index: 2;
+}
+
+.win-btn {
+    width: 28px;
+    height: 22px;
+    border-radius: 3px;
+    border: 1px solid rgba(0,0,0,0.25);
+    background: linear-gradient(to bottom, #ffffff, #d7e7f7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    cursor: pointer;
+    transition: 0.15s;
+}
+
+.win-btn:hover { filter: brightness(1.08); }
+
+.win-btn.close {
+    background: linear-gradient(to bottom, #ffb2a7, #d94b37);
+    color: white;
+}
+
+/* ===== TOOLBAR ===== */
+
+.toolbar {
+    height: 50px;
+    background: linear-gradient(to bottom, #ffffff, #e8edf2);
+    border-bottom: 1px solid #c3ccd5;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 12px;
+}
+
+.back-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(to bottom, #56dcff, #0d7fd8);
+    color: white;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.address-bar {
+    flex: 1;
+    height: 32px;
+    border: 1px solid #9db2c7;
+    background: white;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    color: #8c8c8c;
+    font-size: 14px;
+}
+
+/* ===== CONTENT ===== */
+
+.window-content {
+    height: calc(100% - 88px);
+    overflow: auto;
+    padding: 35px;
+    font-size: 15px;
+    line-height: 1.8;
+    color: #222;
+    background: linear-gradient(to bottom, #ffffff, #f6f9fc);
+}
+
+.window-content h2 {
+    color: #0c57c7;
+    font-size: 42px;
+    margin-bottom: 20px;
+}
+
+.more-btn {
+    margin-top: 30px;
+    background: linear-gradient(to bottom, #63b5ff, #2c7de4);
+    border: 1px solid #1959aa;
+    border-radius: 5px;
+    color: white;
+    padding: 12px 24px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.15s;
+}
+
+.more-btn:hover { transform: translateY(-2px); }
+
+/* ===== ANIMATION ===== */
+
+@keyframes popup {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0) rotate(-8deg); }
+    70%  { opacity: 1; transform: translate(-50%, -50%) scale(1.05) rotate(1deg); }
+    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="background"></div>
+<div id="overlay"></div>
+
+<!-- MAIN IMAGE -->
+<div id="screen">
+    <img src="purbleplacefinal.png" alt="Purble Place">
+    <div class="house" id="bellHouse"></div>
+    <div class="house" id="chimneyHouse"></div>
+    <div class="house" id="eyesHouse"></div>
+</div>
+
+<!-- SCHOOL PROJECTS -->
+<div class="window" id="bellWindow">
+    <div class="titlebar">
+        <div class="window-title"><div class="window-icon"></div><span> Projects</span></div>
+        <div class="window-buttons">
+            <div class="win-btn">—</div>
+            <div class="win-btn">□</div>
+            <div class="win-btn close" onclick="closeAll()">✕</div>
+        </div>
+    </div>
+    <div class="toolbar">
+        <div class="back-btn">←</div>
+        <div class="address-bar"> Projects</div>
+    </div>
+    <div class="window-content">
+        <h2>Projects</h2>
+        <p>
+<a href="https://vibegit.in"><b>
+VibeGit - A Social Collaboration Platform for Sharing, Remixing, and Building Projects</a></b><br>
+<i>
+React 18, Node.js, Express, Mongoose, JWT, Multer, Framer Motion, and Canvas API</i><br>
+Developed and deployed a full-stack MERN application with JWT-based authentication, combining social media and version control concepts so users can share and discover projects.
+Imagine Instagram and GitHub had a baby, and it grew up to become a hangout spot for developers. That's VibeGit!
+It's a social platform where developers can share their projects, code snippets, ideas, and little coding experiments without the pressure of being perfect. You can explore what others are building, follow creators, interact with posts, remix projects, and even find people to collaborate with through sync requests.
+Whether you're a seasoned coder or someone just starting out, VibeGit is all about connecting, creating, and discovering.
+Less gatekeeping, more creating. Come for the code, stay for the vibes!</p>
+    </div>
+</div>
+
+<!-- CREATIVE WORK -->
+<div class="window" id="chimneyWindow">
+    <div class="titlebar">
+        <div class="window-title"><div class="window-icon"></div><span>Projects</span></div>
+        <div class="window-buttons">
+            <div class="win-btn">—</div>
+            <div class="win-btn">□</div>
+            <div class="win-btn close" onclick="closeAll()">✕</div>
+        </div>
+    </div>
+    <div class="toolbar">
+        <div class="back-btn">←</div>
+        <div class="address-bar">Projects</div>
+    </div>
+    <div class="window-content">
+      <h2>Projects</h2>
+        <p>
+<a href="https://ai-legal-document-analyzer-contract-review-agent-ggcrlgr4n.vercel.app/upload"><b>
+AI-powered Legal Document Analyzer</a></b><br>
+<i>FastAPI, Python 3.13, Groq API (LLaMA 3.3), LangChain, LangGraph, ChromaDB, Sentence Transformers, spaCy</i><br>Built and deployed a FastAPI + ChromaDB pipeline to extract, segment, and classify legal clauses from PDFs using spaCy NER and Groq’s LLaMA 3.3 and enforced semantic similarity scoring with Sentence Transformers to detect clause deviations against gold-standard templates. Integrated LangChain + LangGraph for multi-step agentic analysis with redline suggestion generation
+Ever wished you had a legal expert who could read through pages of complicated contracts and actually tell you what to watch out for? That's LegalLens!
+
+It's an AI-powered legal document analyzer designed to make understanding contracts a little less intimidating. Upload a document, and LegalLens gets to work identifying risky clauses, highlighting potential red flags, comparing them against legal templates, and suggesting possible improvements.
+
+Built using NLP, RAG, and LLM technologies, it turns lengthy legal documents into insights that are easier to understand and act upon.
+</p>
+    </div>
+</div>
+
+<!-- ABOUT ME -->
+<div class="window" id="eyesWindow">
+    <div class="titlebar">
+        <div class="window-title"><div class="window-icon"></div><span>About Me</span></div>
+        <div class="window-buttons">
+            <div class="win-btn">—</div>
+            <div class="win-btn">□</div>
+            <div class="win-btn close" onclick="closeAll()">✕</div>
+        </div>
+    </div>
+    <div class="toolbar">
+        <div class="back-btn">←</div>
+        <div class="address-bar">Projects</div>
+    </div>
+    <div class="window-content">  <h2>Projects</h2>
+        <p>
+<a href="https://lockedin-website.vercel.app/"><b>LockedIn – AI-Powered Chrome Productivity Tracker</a></b><br>
+<i>JavaScript, Chrome Extension APIs, Groq API,	Chrome Local Storage, HTML, CSS, JavaScript
+</i><br>A Chrome extension that keeps tabs on your browsing habits (quite literally). It tracks time spent across websites, uses Groq AI to classify YouTube videos as educational or entertainment, and generates daily productivity scores, rankings and personalized insights. Think of it as a little reality check for your screen time — minus the sugarcoating
+</p><br>
+<p>
+    <b><u> Post-Quantum Security Framework for Secure Electric Vehicle V2X Communication </u></b>
+    <br>
+    <i>C++, liboqs, ML-DSA, ML-KEM, Falcon, SPHINCS+
+</i>
+Contributed to a custom-built C++ vehicular network simulator with a liboqs backend to evaluate NIST post-quantum algorithms (ML-DSA, Falcon, SPHINCS+, ML-KEM) in a 50-vehicle V2X configuration. 
+Our research explores the application of Post-Quantum Cryptography (PQC) in Vehicle-to-Everything (V2X) communication, addressing the growing need for quantum-resistant security in connected and autonomous vehicle networks.
+
+We developed a simulation environment to evaluate and compare cryptographic algorithms such as ML-KEM, ML-DSA, Falcon and SPHINCS+, focusing on their computational performance, memory requirements and communication overhead. The study also examines security against potential threats such as replay attacks and message tampering.
+Going to be in the papers very soon! Stay Tuned!
+</p>
+    </div>
+</div>
+
+<script>
+
+const overlay = document.getElementById("overlay");
+
+function openWindow(id) {
+    closeAll();
+    overlay.classList.add("active");
+    document.getElementById(id).classList.add("active");
+}
+
+function closeAll() {
+    overlay.classList.remove("active");
+    document.querySelectorAll(".window").forEach(w => w.classList.remove("active"));
+}
+
+document.getElementById("bellHouse").addEventListener("click", () => openWindow("bellWindow"));
+document.getElementById("chimneyHouse").addEventListener("click", () => openWindow("chimneyWindow"));
+document.getElementById("eyesHouse").addEventListener("click", () => openWindow("eyesWindow"));
+
+overlay.addEventListener("click", closeAll);
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeAll(); });
+
+</script>
+
+</body>
+</html>
